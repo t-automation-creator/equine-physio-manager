@@ -111,7 +111,7 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main Content */}
-      <main className="pt-16 md:pt-0 md:pl-64 min-h-screen">
+      <main className="pt-16 pb-24 md:pt-0 md:pb-0 md:pl-64 min-h-screen">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
           {children}
         </div>
@@ -142,9 +142,6 @@ export default function Layout({ children, currentPageName }) {
           })}
         </div>
       </nav>
-
-      {/* Bottom padding for mobile nav */}
-      <div className="h-20 md:hidden" />
     </div>
   );
 }
