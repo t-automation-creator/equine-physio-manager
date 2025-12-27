@@ -11,7 +11,9 @@ import {
   Upload,
   X,
   Calendar,
-  Loader2
+  Loader2,
+  Mic,
+  Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,6 +48,9 @@ export default function TreatmentEntry() {
   const [photoUrls, setPhotoUrls] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [transcribing, setTranscribing] = useState(false);
 
   const { data: horse } = useQuery({
     queryKey: ['horse', horseId],
@@ -161,6 +166,52 @@ export default function TreatmentEntry() {
     });
   };
 
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const file = new File([blob], 'voice-note.webm', { type: 'audio/webm' });
+      
+      stream.getTracks().forEach(track => track.stop());
+      
+      setTranscribing(true);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: 'Transcribe this audio recording. Only return the transcribed text, nothing else.',
+        file_urls: [file_url]
+      });
+      
+      const transcribedText = result || '';
+      const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
+      setNotes(newNotes);
+      setTranscribing(false);
+      
+      autoSave({
+        notes: newNotes,
+        treatment_types: selectedTypes,
+        follow_up_date: followUpDate,
+        photo_urls: photoUrls,
+      });
+    };
+
+    recorder.start();
+    setMediaRecorder(recorder);
+    setRecording(true);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
   const handleFinish = async () => {
     await saveMutation.mutateAsync({
       notes,
@@ -198,9 +249,41 @@ export default function TreatmentEntry() {
       <div className="space-y-4">
         {/* Notes - Primary Input */}
         <div className="bg-white rounded-2xl border-2 border-stone-200 p-5">
-          <Label className="text-lg font-semibold text-stone-800 mb-3 block">
-            Notes
-          </Label>
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-lg font-semibold text-stone-800">
+              Notes
+            </Label>
+            <button
+              onClick={recording ? stopRecording : startRecording}
+              disabled={transcribing}
+              className={`
+                flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all
+                ${recording 
+                  ? 'bg-red-500 text-white animate-pulse' 
+                  : transcribing
+                  ? 'bg-stone-300 text-stone-600'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }
+              `}
+            >
+              {transcribing ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span className="text-sm">Transcribing...</span>
+                </>
+              ) : recording ? (
+                <>
+                  <Square size={18} />
+                  <span className="text-sm">Stop</span>
+                </>
+              ) : (
+                <>
+                  <Mic size={18} />
+                  <span className="text-sm">Record</span>
+                </>
+              )}
+            </button>
+          </div>
           <Textarea
             value={notes}
             onChange={handleNotesChange}
