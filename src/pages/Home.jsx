@@ -148,9 +148,12 @@ export default function Home() {
                                 key={horse.id}
                                 to={createPageUrl(`TreatmentEntry?appointmentId=${appt.id}&horseId=${horse.id}`)}
                               >
-                                <Button className="w-full h-16 text-lg bg-emerald-600 hover:bg-emerald-700 rounded-xl">
-                                  <Play size={24} className="mr-3" />
-                                  Start Treatment - {horse.name}
+                                <Button className="w-full h-20 bg-emerald-600 hover:bg-emerald-700 rounded-2xl flex flex-col items-center justify-center gap-1 py-4">
+                                  <div className="flex items-center gap-2">
+                                    <Play size={22} className="fill-white" />
+                                    <span className="text-lg font-bold">Start Treatment</span>
+                                  </div>
+                                  <span className="text-sm font-medium opacity-90">{horse.name}</span>
                                 </Button>
                               </Link>
                             );
