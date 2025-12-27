@@ -17,6 +17,8 @@ import NewClient from './pages/NewClient';
 import EditClient from './pages/EditClient';
 import NewYard from './pages/NewYard';
 import EditYard from './pages/EditYard';
+import NewHorse from './pages/NewHorse';
+import EditHorse from './pages/EditHorse';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +42,8 @@ export const PAGES = {
     "EditClient": EditClient,
     "NewYard": NewYard,
     "EditYard": EditYard,
+    "NewHorse": NewHorse,
+    "EditHorse": EditHorse,
 }
 
 export const pagesConfig = {
