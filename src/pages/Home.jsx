@@ -161,8 +161,8 @@ export default function Home() {
 
                           {treatmentsComplete && !invoice && (
                             <Link to={createPageUrl(`CreateInvoice?appointmentId=${appt.id}`)}>
-                              <Button className="w-full h-16 text-lg bg-stone-800 hover:bg-stone-900 rounded-xl">
-                                <FileText size={24} className="mr-3" />
+                              <Button className="w-full h-20 bg-stone-800 hover:bg-stone-900 rounded-2xl flex items-center justify-center gap-3 text-lg font-bold">
+                                <FileText size={22} />
                                 Create Invoice
                               </Button>
                             </Link>
@@ -170,8 +170,8 @@ export default function Home() {
 
                           {invoice && (
                             <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
-                              <Button variant="outline" className="w-full h-14 text-lg rounded-xl border-2">
-                                <FileText size={20} className="mr-3" />
+                              <Button variant="outline" className="w-full h-16 rounded-2xl border-2 flex items-center justify-center gap-3 text-lg font-semibold">
+                                <FileText size={20} />
                                 View Invoice
                               </Button>
                             </Link>
