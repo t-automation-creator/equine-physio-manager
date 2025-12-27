@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tantml:react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
-import { Plus, Calendar, MapPin } from 'lucide-react';
+import { MapPin, Play, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import PageHeader from '../components/ui/PageHeader';
-import EmptyState from '../components/ui/EmptyState';
-import AppointmentCard from '../components/appointments/AppointmentCard';
 
 export default function Home() {
   const today = format(new Date(), 'yyyy-MM-dd');
