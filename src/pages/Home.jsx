@@ -45,75 +45,138 @@ export default function Home() {
   const getHorses = (ids) => ids?.map(id => horses.find(h => h.id === id)).filter(Boolean) || [];
   const getTreatmentsForAppointment = (apptId) => treatments.filter(t => t.appointment_id === apptId);
 
-  // Group appointments by yard
-  const appointmentsByYard = appointments.reduce((acc, appt) => {
-    const yardId = appt.yard_id || 'no-yard';
-    if (!acc[yardId]) acc[yardId] = [];
-    acc[yardId].push(appt);
-    return acc;
-  }, {});
+  // Group appointments by yard and sort by time
+  const appointmentsByYard = appointments
+    .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+    .reduce((acc, appt) => {
+      const yardId = appt.yard_id || 'no-yard';
+      if (!acc[yardId]) acc[yardId] = [];
+      acc[yardId].push(appt);
+      return acc;
+    }, {});
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: () => base44.entities.Invoice.list(),
+  });
+
+  const getInvoice = (apptId) => invoices.find(inv => inv.appointment_id === apptId);
+
+  const getHorseStatus = (apptId, horseId) => {
+    const treatment = treatments.find(t => t.appointment_id === apptId && t.horse_id === horseId);
+    return treatment?.status || 'not_started';
+  };
+
+  const allTreatmentsComplete = (apptId, horseIds) => {
+    return horseIds?.every(horseId => getHorseStatus(apptId, horseId) === 'completed');
+  };
 
   return (
     <div className="pb-6">
-      <PageHeader 
-        title="Today"
-        subtitle={format(new Date(), 'EEEE, MMMM d')}
-        action={
-          <Link to={createPageUrl('NewAppointment')}>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-5">
-              <Plus size={20} className="mr-2" />
-              New Appointment
-            </Button>
-          </Link>
-        }
-      />
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-stone-800 mb-1">Today</h1>
+        <p className="text-stone-500 text-lg">{format(new Date(), 'EEEE, MMMM d')}</p>
+      </div>
 
       {loadingAppts ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl h-40 animate-pulse" />
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-2xl h-48 animate-pulse" />
           ))}
         </div>
       ) : appointments.length === 0 ? (
-        <EmptyState
-          icon={Calendar}
-          title="No appointments today"
-          description="You have no appointments scheduled for today. Create a new appointment to get started."
-          action={
-            <Link to={createPageUrl('NewAppointment')}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-6">
-                <Plus size={20} className="mr-2" />
-                New Appointment
-              </Button>
-            </Link>
-          }
-        />
+        <div className="text-center py-16 text-stone-500">
+          <p className="text-lg">No appointments today</p>
+        </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {Object.entries(appointmentsByYard).map(([yardId, yardAppts]) => {
             const yard = getYard(yardId);
             return (
               <div key={yardId}>
                 {yard && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <MapPin size={18} className="text-stone-400" />
-                    <h2 className="font-semibold text-stone-700">{yard.name}</h2>
-                    <span className="text-stone-400 text-sm">
-                      {yardAppts.length} {yardAppts.length === 1 ? 'appointment' : 'appointments'}
-                    </span>
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin size={20} className="text-emerald-600" />
+                    <h2 className="text-xl font-bold text-stone-800">{yard.name}</h2>
                   </div>
                 )}
-                <div className="space-y-3">
-                  {yardAppts.map((appt) => (
-                    <AppointmentCard
-                      key={appt.id}
-                      appointment={appt}
-                      client={getClient(appt.client_id)}
-                      yard={yard}
-                      horses={getHorses(appt.horse_ids)}
-                      treatments={getTreatmentsForAppointment(appt.id)}
-                    />
-                  ))}
+                <div className="space-y-4">
+                  {yardAppts.map((appt) => {
+                    const client = getClient(appt.client_id);
+                    const apptHorses = getHorses(appt.horse_ids);
+                    const invoice = getInvoice(appt.id);
+                    const treatmentsComplete = allTreatmentsComplete(appt.id, appt.horse_ids);
+
+                    return (
+                      <div 
+                        key={appt.id}
+                        className="bg-white rounded-2xl border-2 border-stone-200 p-6"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-stone-800">{client?.name}</h3>
+                            <p className="text-stone-500 text-lg mt-1">{appt.time}</p>
+                          </div>
+                        </div>
+
+                        {/* Horses */}
+                        <div className="space-y-3 mb-6">
+                          {apptHorses.map((horse) => {
+                            const status = getHorseStatus(appt.id, horse.id);
+                            const statusColor = status === 'completed' ? 'text-emerald-600' : 'text-stone-400';
+                            
+                            return (
+                              <div key={horse.id} className="flex items-center justify-between">
+                                <span className="text-lg text-stone-700">{horse.name}</span>
+                                <span className={`text-sm font-medium ${statusColor}`}>
+                                  {status === 'completed' ? '✓ Done' : 
+                                   status === 'in_progress' ? 'In progress' : 'Not started'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="space-y-3">
+                          {apptHorses.map((horse) => {
+                            const status = getHorseStatus(appt.id, horse.id);
+                            if (status === 'completed') return null;
+                            
+                            return (
+                              <Link
+                                key={horse.id}
+                                to={createPageUrl(`TreatmentEntry?appointmentId=${appt.id}&horseId=${horse.id}`)}
+                              >
+                                <Button className="w-full h-16 text-lg bg-emerald-600 hover:bg-emerald-700 rounded-xl">
+                                  <Play size={24} className="mr-3" />
+                                  Start Treatment - {horse.name}
+                                </Button>
+                              </Link>
+                            );
+                          })}
+
+                          {treatmentsComplete && !invoice && (
+                            <Link to={createPageUrl(`CreateInvoice?appointmentId=${appt.id}`)}>
+                              <Button className="w-full h-16 text-lg bg-stone-800 hover:bg-stone-900 rounded-xl">
+                                <FileText size={24} className="mr-3" />
+                                Create Invoice
+                              </Button>
+                            </Link>
+                          )}
+
+                          {invoice && (
+                            <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
+                              <Button variant="outline" className="w-full h-14 text-lg rounded-xl border-2">
+                                <FileText size={20} className="mr-3" />
+                                View Invoice
+                              </Button>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
