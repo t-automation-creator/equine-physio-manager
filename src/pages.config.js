@@ -13,6 +13,10 @@ import Yards from './pages/Yards';
 import YardDetail from './pages/YardDetail';
 import HorseDetail from './pages/HorseDetail';
 import NewAppointment from './pages/NewAppointment';
+import NewClient from './pages/NewClient';
+import EditClient from './pages/EditClient';
+import NewYard from './pages/NewYard';
+import EditYard from './pages/EditYard';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +36,10 @@ export const PAGES = {
     "YardDetail": YardDetail,
     "HorseDetail": HorseDetail,
     "NewAppointment": NewAppointment,
+    "NewClient": NewClient,
+    "EditClient": EditClient,
+    "NewYard": NewYard,
+    "EditYard": EditYard,
 }
 
 export const pagesConfig = {
