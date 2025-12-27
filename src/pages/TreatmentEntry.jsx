@@ -181,7 +181,7 @@ export default function TreatmentEntry() {
   }
 
   return (
-    <div className="pb-6">
+    <div className="pb-24 md:pb-6 max-h-screen overflow-y-auto">
       <PageHeader 
         title={horse?.name || 'Treatment'}
         subtitle="Treatment Notes"
@@ -195,61 +195,33 @@ export default function TreatmentEntry() {
         </div>
       )}
 
-      <div className="space-y-6">
-        {/* Treatment Types */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">
-            Treatment Types
-          </Label>
-          <div className="grid grid-cols-2 gap-3">
-            {TREATMENT_TYPES.map((type) => (
-              <button
-                key={type}
-                onClick={() => handleTypeToggle(type)}
-                className={`
-                  flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left
-                  ${selectedTypes.includes(type)
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-stone-200 text-stone-600 hover:border-stone-300'
-                  }
-                `}
-              >
-                <Checkbox 
-                  checked={selectedTypes.includes(type)}
-                  className="data-[state=checked]:bg-emerald-600"
-                />
-                <span className="text-sm font-medium">{type}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">
-            Treatment Notes
+      <div className="space-y-4">
+        {/* Notes - Primary Input */}
+        <div className="bg-white rounded-2xl border-2 border-stone-200 p-5">
+          <Label className="text-lg font-semibold text-stone-800 mb-3 block">
+            Notes
           </Label>
           <Textarea
             value={notes}
             onChange={handleNotesChange}
-            placeholder="Enter treatment notes, observations, and recommendations..."
-            className="min-h-[200px] rounded-xl border-stone-200 text-base"
+            placeholder="What did you observe? What treatment was given?"
+            className="min-h-[150px] rounded-xl border-stone-200 text-base"
           />
         </div>
 
         {/* Photos */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">
-            Photos
+          <Label className="text-base font-semibold text-stone-800 mb-3 block">
+            Photos (optional)
           </Label>
           
           {photoUrls.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-3 gap-3 mb-3">
               {photoUrls.map((url, index) => (
                 <div key={index} className="relative aspect-square">
                   <img 
                     src={url} 
-                    alt={`Treatment photo ${index + 1}`}
+                    alt={`Photo ${index + 1}`}
                     className="w-full h-full object-cover rounded-xl"
                   />
                   <button
@@ -288,12 +260,40 @@ export default function TreatmentEntry() {
           </label>
         </div>
 
-        {/* Follow-up Date */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">
-            Suggested Follow-up
-          </Label>
-          <div className="flex items-center gap-3">
+        {/* Treatment Types - Optional */}
+        <details className="bg-white rounded-2xl border border-stone-200 p-5">
+          <summary className="text-base font-semibold text-stone-800 cursor-pointer list-none">
+            Treatment Types (optional)
+          </summary>
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            {TREATMENT_TYPES.map((type) => (
+              <button
+                key={type}
+                onClick={() => handleTypeToggle(type)}
+                className={`
+                  flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-left
+                  ${selectedTypes.includes(type)
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                    : 'border-stone-200 text-stone-600'
+                  }
+                `}
+              >
+                <Checkbox 
+                  checked={selectedTypes.includes(type)}
+                  className="data-[state=checked]:bg-emerald-600"
+                />
+                <span className="text-sm font-medium">{type}</span>
+              </button>
+            ))}
+          </div>
+        </details>
+
+        {/* Follow-up Date - Optional */}
+        <details className="bg-white rounded-2xl border border-stone-200 p-5">
+          <summary className="text-base font-semibold text-stone-800 cursor-pointer list-none">
+            Follow-up Date (optional)
+          </summary>
+          <div className="flex items-center gap-3 mt-4">
             <Calendar size={20} className="text-stone-400" />
             <Input
               type="date"
@@ -310,13 +310,15 @@ export default function TreatmentEntry() {
               className="flex-1 rounded-xl border-stone-200"
             />
           </div>
-        </div>
+        </details>
+      </div>
 
-        {/* Finish Button */}
+      {/* Fixed Finish Button */}
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-stone-50 via-stone-50 to-transparent md:relative md:bottom-0 md:mt-6 md:bg-none">
         <Button 
           onClick={handleFinish}
           disabled={saveMutation.isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-14 text-lg"
+          className="w-full max-w-4xl mx-auto bg-emerald-600 hover:bg-emerald-700 rounded-xl h-16 text-lg shadow-lg"
         >
           {saveMutation.isPending ? (
             <Loader2 size={20} className="animate-spin mr-2" />
