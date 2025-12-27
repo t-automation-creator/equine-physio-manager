@@ -7,6 +7,10 @@ import CreateInvoice from './pages/CreateInvoice';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Invoices from './pages/Invoices';
 import Payments from './pages/Payments';
+import Clients from './pages/Clients';
+import ClientDetail from './pages/ClientDetail';
+import Yards from './pages/Yards';
+import YardDetail from './pages/YardDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +24,10 @@ export const PAGES = {
     "InvoiceDetail": InvoiceDetail,
     "Invoices": Invoices,
     "Payments": Payments,
+    "Clients": Clients,
+    "ClientDetail": ClientDetail,
+    "Yards": Yards,
+    "YardDetail": YardDetail,
 }
 
 export const pagesConfig = {
