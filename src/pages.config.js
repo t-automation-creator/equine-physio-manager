@@ -11,6 +11,8 @@ import Clients from './pages/Clients';
 import ClientDetail from './pages/ClientDetail';
 import Yards from './pages/Yards';
 import YardDetail from './pages/YardDetail';
+import HorseDetail from './pages/HorseDetail';
+import NewAppointment from './pages/NewAppointment';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +30,8 @@ export const PAGES = {
     "ClientDetail": ClientDetail,
     "Yards": Yards,
     "YardDetail": YardDetail,
+    "HorseDetail": HorseDetail,
+    "NewAppointment": NewAppointment,
 }
 
 export const pagesConfig = {
