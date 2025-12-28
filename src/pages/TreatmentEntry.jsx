@@ -13,7 +13,10 @@ import {
   Calendar,
   Loader2,
   Mic,
-  Square
+  Square,
+  User,
+  Clock,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,6 +60,26 @@ export default function TreatmentEntry() {
     queryFn: async () => {
       const horses = await base44.entities.Horse.filter({ id: horseId });
       return horses[0];
+    },
+    enabled: !!horseId,
+  });
+
+  const { data: owner } = useQuery({
+    queryKey: ['client', horse?.owner_id],
+    queryFn: async () => {
+      const clients = await base44.entities.Client.filter({ id: horse.owner_id });
+      return clients[0];
+    },
+    enabled: !!horse?.owner_id,
+  });
+
+  const { data: lastTreatment } = useQuery({
+    queryKey: ['lastTreatment', horseId],
+    queryFn: async () => {
+      const treatments = await base44.entities.Treatment.filter({ horse_id: horseId });
+      const completed = treatments.filter(t => t.status === 'completed' && t.id !== existingTreatment?.id);
+      if (completed.length === 0) return null;
+      return completed.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
     },
     enabled: !!horseId,
   });
@@ -234,8 +257,7 @@ export default function TreatmentEntry() {
   return (
     <div className="pb-24 md:pb-6 max-h-screen overflow-y-auto">
       <PageHeader 
-        title={horse?.name || 'Treatment'}
-        subtitle="Treatment Notes"
+        title="Treatment Entry"
         backTo={`AppointmentDetail?id=${appointmentId}`}
       />
 
@@ -244,6 +266,61 @@ export default function TreatmentEntry() {
           <Loader2 size={14} className="animate-spin" />
           Saving...
         </div>
+      )}
+
+      {/* Horse Context Banner - Always Visible */}
+      <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-6 mb-6 text-white shadow-lg border-4 border-emerald-800">
+        <div className="flex items-center gap-4 mb-3">
+          {horse?.photo_url && (
+            <img 
+              src={horse.photo_url} 
+              alt={horse.name}
+              className="w-16 h-16 rounded-full object-cover border-4 border-white/30"
+            />
+          )}
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-1">{horse?.name || 'Loading...'}</h2>
+            <div className="flex items-center gap-2 text-emerald-100">
+              <User size={16} />
+              <span className="font-medium">{owner?.name || 'Loading owner...'}</span>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white/20 rounded-xl px-4 py-2 backdrop-blur-sm">
+          <p className="text-sm font-semibold text-center">
+            ✓ You are treating {horse?.name}
+          </p>
+        </div>
+      </div>
+
+      {/* Last Treatment History - Collapsed */}
+      {lastTreatment && (
+        <details className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 mb-6">
+          <summary className="font-semibold text-amber-900 cursor-pointer list-none flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock size={18} />
+              <span>Last Treatment History</span>
+            </div>
+            <ChevronDown size={18} className="text-amber-600" />
+          </summary>
+          <div className="mt-4 pt-4 border-t border-amber-200">
+            <p className="text-sm text-amber-800 mb-2">
+              <strong>Date:</strong> {new Date(lastTreatment.created_date).toLocaleDateString('en-GB', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+              })}
+            </p>
+            {lastTreatment.notes && (
+              <div className="bg-white rounded-xl p-3 border border-amber-200">
+                <p className="text-sm text-stone-700">
+                  {lastTreatment.notes.substring(0, 200)}
+                  {lastTreatment.notes.length > 200 ? '...' : ''}
+                </p>
+              </div>
+            )}
+          </div>
+        </details>
       )}
 
       <div className="space-y-4">

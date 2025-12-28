@@ -1,49 +1,49 @@
-import Home from './pages/Home';
-import Appointments from './pages/Appointments';
 import AppointmentDetail from './pages/AppointmentDetail';
-import TreatmentEntry from './pages/TreatmentEntry';
-import TreatmentSummary from './pages/TreatmentSummary';
+import Appointments from './pages/Appointments';
+import ClientDetail from './pages/ClientDetail';
+import Clients from './pages/Clients';
 import CreateInvoice from './pages/CreateInvoice';
+import EditClient from './pages/EditClient';
+import EditHorse from './pages/EditHorse';
+import EditYard from './pages/EditYard';
+import Home from './pages/Home';
+import HorseDetail from './pages/HorseDetail';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Invoices from './pages/Invoices';
-import Payments from './pages/Payments';
-import Clients from './pages/Clients';
-import ClientDetail from './pages/ClientDetail';
-import Yards from './pages/Yards';
-import YardDetail from './pages/YardDetail';
-import HorseDetail from './pages/HorseDetail';
 import NewAppointment from './pages/NewAppointment';
 import NewClient from './pages/NewClient';
-import EditClient from './pages/EditClient';
-import NewYard from './pages/NewYard';
-import EditYard from './pages/EditYard';
 import NewHorse from './pages/NewHorse';
-import EditHorse from './pages/EditHorse';
+import NewYard from './pages/NewYard';
+import Payments from './pages/Payments';
+import TreatmentEntry from './pages/TreatmentEntry';
+import TreatmentSummary from './pages/TreatmentSummary';
+import YardDetail from './pages/YardDetail';
+import Yards from './pages/Yards';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
-    "Appointments": Appointments,
     "AppointmentDetail": AppointmentDetail,
-    "TreatmentEntry": TreatmentEntry,
-    "TreatmentSummary": TreatmentSummary,
+    "Appointments": Appointments,
+    "ClientDetail": ClientDetail,
+    "Clients": Clients,
     "CreateInvoice": CreateInvoice,
+    "EditClient": EditClient,
+    "EditHorse": EditHorse,
+    "EditYard": EditYard,
+    "Home": Home,
+    "HorseDetail": HorseDetail,
     "InvoiceDetail": InvoiceDetail,
     "Invoices": Invoices,
-    "Payments": Payments,
-    "Clients": Clients,
-    "ClientDetail": ClientDetail,
-    "Yards": Yards,
-    "YardDetail": YardDetail,
-    "HorseDetail": HorseDetail,
     "NewAppointment": NewAppointment,
     "NewClient": NewClient,
-    "EditClient": EditClient,
-    "NewYard": NewYard,
-    "EditYard": EditYard,
     "NewHorse": NewHorse,
-    "EditHorse": EditHorse,
+    "NewYard": NewYard,
+    "Payments": Payments,
+    "TreatmentEntry": TreatmentEntry,
+    "TreatmentSummary": TreatmentSummary,
+    "YardDetail": YardDetail,
+    "Yards": Yards,
 }
 
 export const pagesConfig = {
