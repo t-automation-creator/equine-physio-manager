@@ -62,6 +62,7 @@ export default function TreatmentEntry() {
       return horses[0];
     },
     enabled: !!horseId,
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 
   const { data: owner } = useQuery({
@@ -71,6 +72,7 @@ export default function TreatmentEntry() {
       return clients[0];
     },
     enabled: !!horse?.owner_id,
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 
   const { data: lastTreatment } = useQuery({
@@ -117,6 +119,30 @@ export default function TreatmentEntry() {
         });
       }
     },
+    onMutate: async (newData) => {
+      // Optimistic update - immediately update UI without waiting for server
+      await queryClient.cancelQueries(['treatment', appointmentId, horseId]);
+      
+      const previousTreatment = queryClient.getQueryData(['treatment', appointmentId, horseId]);
+      
+      if (existingTreatment) {
+        queryClient.setQueryData(['treatment', appointmentId, horseId], {
+          ...existingTreatment,
+          ...newData,
+        });
+      }
+      
+      return { previousTreatment };
+    },
+    onError: (err, newData, context) => {
+      // Rollback on error
+      if (context?.previousTreatment) {
+        queryClient.setQueryData(
+          ['treatment', appointmentId, horseId],
+          context.previousTreatment
+        );
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['treatment', appointmentId, horseId]);
       queryClient.invalidateQueries(['treatments']);
@@ -130,9 +156,12 @@ export default function TreatmentEntry() {
         ...data,
         status: 'in_progress',
       }, {
-        onSettled: () => setSaving(false),
+        onSettled: () => {
+          // Delay hiding saving indicator to give user feedback
+          setTimeout(() => setSaving(false), 300);
+        },
       });
-    }, 1000),
+    }, 1500), // Increased debounce to reduce API calls
     [existingTreatment]
   );
 

@@ -13,21 +13,46 @@ export default function Home() {
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
     queryKey: ['appointments', today],
     queryFn: () => base44.entities.Appointment.filter({ date: today }),
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
+  // Only fetch data needed for today's appointments
+  const clientIds = [...new Set(appointments.map(a => a.client_id))];
+  const yardIds = [...new Set(appointments.map(a => a.yard_id).filter(Boolean))];
+  const horseIds = [...new Set(appointments.flatMap(a => a.horse_ids || []))];
+
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryKey: ['clients', clientIds],
+    queryFn: async () => {
+      if (clientIds.length === 0) return [];
+      const allClients = await base44.entities.Client.list();
+      return allClients.filter(c => clientIds.includes(c.id));
+    },
+    enabled: clientIds.length > 0,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: yards = [] } = useQuery({
-    queryKey: ['yards'],
-    queryFn: () => base44.entities.Yard.list(),
+    queryKey: ['yards', yardIds],
+    queryFn: async () => {
+      if (yardIds.length === 0) return [];
+      const allYards = await base44.entities.Yard.list();
+      return allYards.filter(y => yardIds.includes(y.id));
+    },
+    enabled: yardIds.length > 0,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: horses = [] } = useQuery({
-    queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.list(),
+    queryKey: ['horses', horseIds],
+    queryFn: async () => {
+      if (horseIds.length === 0) return [];
+      const allHorses = await base44.entities.Horse.list();
+      return allHorses.filter(h => horseIds.includes(h.id));
+    },
+    enabled: horseIds.length > 0,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: treatments = [] } = useQuery({
@@ -38,6 +63,7 @@ export default function Home() {
       return allTreatments.filter(t => todayApptIds.includes(t.appointment_id));
     },
     enabled: appointments.length > 0,
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes (updates frequently)
   });
 
   const getClient = (id) => clients.find(c => c.id === id);
