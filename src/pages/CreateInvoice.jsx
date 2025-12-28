@@ -60,24 +60,64 @@ export default function CreateInvoice() {
     queryFn: () => base44.entities.Invoice.list(),
   });
 
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const allSettings = await base44.entities.Settings.list();
+      if (allSettings.length === 0) {
+        // Create default settings if none exist
+        return base44.entities.Settings.create({
+          default_treatment_price: 60,
+          default_travel_charge: 0,
+          invoice_terms_days: 14
+        });
+      }
+      return allSettings[0];
+    },
+  });
+
   const getHorse = (id) => horses.find(h => h.id === id);
 
-  // Initialize line items from treatments
+  // Auto-generate invoice line items from treatments
   useEffect(() => {
-    if (treatments.length > 0 && lineItems.length === 0) {
+    if (treatments.length > 0 && lineItems.length === 0 && horses.length > 0 && settings) {
       const items = treatments.map(t => {
         const horse = getHorse(t.horse_id);
-        const treatmentDesc = t.treatment_types?.join(', ') || 'Physiotherapy Session';
+        const treatmentDesc = t.treatment_types?.length > 0 
+          ? t.treatment_types.join(', ') 
+          : 'Physiotherapy Treatment';
+        const price = settings.default_treatment_price || 60;
         return {
           description: `${horse?.name || 'Horse'} - ${treatmentDesc}`,
           quantity: 1,
-          unit_price: 75,
-          total: 75,
+          unit_price: price,
+          total: price,
         };
       });
+
+      // Add travel charge if configured
+      if (settings.default_travel_charge && settings.default_travel_charge > 0) {
+        items.push({
+          description: 'Travel / Call-out Charge',
+          quantity: 1,
+          unit_price: settings.default_travel_charge,
+          total: settings.default_travel_charge,
+        });
+      }
+
       setLineItems(items);
+      
+      // Set notes from settings
+      if (settings.invoice_notes) {
+        setNotes(settings.invoice_notes);
+      }
+      
+      // Set due date based on terms
+      if (settings.invoice_terms_days) {
+        setDueDate(format(addDays(new Date(), settings.invoice_terms_days), 'yyyy-MM-dd'));
+      }
     }
-  }, [treatments, horses]);
+  }, [treatments, horses, settings]);
 
   const createMutation = useMutation({
     mutationFn: async (invoiceData) => {
@@ -131,6 +171,13 @@ export default function CreateInvoice() {
       />
 
       <div className="space-y-6">
+        {/* Auto-generated Notice */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
+          <p className="text-sm text-blue-800">
+            ✓ Invoice automatically generated from {treatments.length} treatment{treatments.length !== 1 ? 's' : ''} at £{settings?.default_treatment_price || 60} per horse
+          </p>
+        </div>
+
         {/* Client Info */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
           <h3 className="font-semibold text-stone-800 mb-3">Invoice For</h3>
@@ -141,7 +188,10 @@ export default function CreateInvoice() {
 
         {/* Line Items */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <h3 className="font-semibold text-stone-800 mb-4">Line Items</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-stone-800">Line Items</h3>
+            <span className="text-xs text-stone-500">Edit if needed</span>
+          </div>
           
           <div className="space-y-4">
             {lineItems.map((item, index) => (
