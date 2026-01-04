@@ -52,8 +52,8 @@ export default function CreateInvoice() {
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', appointmentId],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
-      return data;
+      const response = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
+      return response.data.data;
     },
     enabled: !!appointmentId && !!user,
   });
@@ -61,8 +61,8 @@ export default function CreateInvoice() {
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
-      return data;
+      const response = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return response.data.data;
     },
     enabled: !!user,
   });
@@ -70,8 +70,8 @@ export default function CreateInvoice() {
   const { data: invoices = [] } = useQuery({
     queryKey: ['allInvoices'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Invoice', query: {} });
-      return data;
+      const response = await base44.functions.invoke('getMyData', { entity: 'Invoice', query: {} });
+      return response.data.data;
     },
     enabled: !!user,
   });
@@ -79,15 +79,16 @@ export default function CreateInvoice() {
   const { data: settings } = useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Settings', query: {} });
-      if (data.length === 0) {
+      const response = await base44.functions.invoke('getMyData', { entity: 'Settings', query: {} });
+      const settingsData = response.data.data;
+      if (settingsData.length === 0) {
         return base44.entities.Settings.create({
           default_treatment_price: 60,
           default_travel_charge: 0,
           invoice_terms_days: 14
         });
       }
-      return data[0];
+      return settingsData[0];
     },
     enabled: !!user,
   });

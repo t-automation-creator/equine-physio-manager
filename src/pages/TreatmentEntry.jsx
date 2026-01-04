@@ -83,8 +83,9 @@ export default function TreatmentEntry() {
   const { data: lastTreatment } = useQuery({
     queryKey: ['lastTreatment', horseId],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { horse_id: horseId } });
-      const completed = data.filter(t => t.status === 'completed' && t.id !== existingTreatment?.id);
+      const response = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { horse_id: horseId } });
+      const allTreatments = response.data.data;
+      const completed = allTreatments.filter(t => t.status === 'completed' && t.id !== existingTreatment?.id);
       if (completed.length === 0) return null;
       return completed.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
     },
