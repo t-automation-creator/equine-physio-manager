@@ -166,9 +166,16 @@ export default function MessageBubble({ message }) {
                     </div>
                 )}
                 
-                {message.tool_calls?.length > 0 && (
+                {message.tool_calls?.filter(tc => {
+                    const name = tc?.name || '';
+                    // Only show create, update, delete operations - hide read operations
+                    return name.includes('create') || name.includes('update') || name.includes('delete');
+                }).length > 0 && (
                     <div className="space-y-1">
-                        {message.tool_calls.map((toolCall, idx) => (
+                        {message.tool_calls.filter(tc => {
+                            const name = tc?.name || '';
+                            return name.includes('create') || name.includes('update') || name.includes('delete');
+                        }).map((toolCall, idx) => (
                             <FunctionDisplay key={idx} toolCall={toolCall} />
                         ))}
                     </div>
