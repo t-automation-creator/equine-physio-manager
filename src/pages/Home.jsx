@@ -6,8 +6,10 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import { MapPin, Play, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import AddressPrompt from '../components/AddressPrompt';
 
 export default function Home() {
+  const [showAddressPrompt, setShowAddressPrompt] = React.useState(true);
   const today = format(new Date(), 'yyyy-MM-dd');
 
   const { data: user } = useQuery({
@@ -116,6 +118,8 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-stone-800 mb-1">Today</h1>
         <p className="text-stone-500 text-lg">{format(new Date(), 'EEEE, MMMM d')}</p>
       </div>
+
+      {showAddressPrompt && <AddressPrompt user={user} onDismiss={() => setShowAddressPrompt(false)} />}
 
       {loadingAppts ? (
         <div className="space-y-4">
