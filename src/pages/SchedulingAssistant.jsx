@@ -32,14 +32,26 @@ export default function SchedulingAssistant() {
   }, [user]);
 
   const initializeConversation = async () => {
-    const newConversation = await base44.agents.createConversation({
-      agent_name: "schedule_coordinator",
-      metadata: {
-        name: "Scheduling Session",
-        description: "AI-assisted appointment scheduling",
-      }
-    });
-    setConversation(newConversation);
+    try {
+      const newConversation = await base44.agents.createConversation({
+        agent_name: "schedule_coordinator",
+        metadata: {
+          name: "Scheduling Session",
+          description: "AI-assisted appointment scheduling",
+        }
+      });
+      setConversation(newConversation);
+      
+      // Send initial greeting to trigger agent response
+      setTimeout(async () => {
+        await base44.agents.addMessage(newConversation, {
+          role: "user",
+          content: "Hello",
+        });
+      }, 500);
+    } catch (error) {
+      console.error('Failed to initialize conversation:', error);
+    }
   };
 
   // Subscribe to conversation updates
