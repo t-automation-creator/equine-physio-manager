@@ -10,9 +10,15 @@ import { Button } from '@/components/ui/button';
 export default function Home() {
   const today = format(new Date(), 'yyyy-MM-dd');
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
     queryKey: ['appointments', today],
-    queryFn: () => base44.entities.Appointment.filter({ date: today }),
+    queryFn: () => base44.entities.Appointment.filter({ created_by: user.email, date: today }),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
@@ -26,10 +32,10 @@ export default function Home() {
     queryKey: ['clients', clientIds],
     queryFn: async () => {
       if (clientIds.length === 0) return [];
-      const allClients = await base44.entities.Client.list();
+      const allClients = await base44.entities.Client.filter({ created_by: user.email });
       return allClients.filter(c => clientIds.includes(c.id));
     },
-    enabled: clientIds.length > 0,
+    enabled: clientIds.length > 0 && !!user,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -37,10 +43,10 @@ export default function Home() {
     queryKey: ['yards', yardIds],
     queryFn: async () => {
       if (yardIds.length === 0) return [];
-      const allYards = await base44.entities.Yard.list();
+      const allYards = await base44.entities.Yard.filter({ created_by: user.email });
       return allYards.filter(y => yardIds.includes(y.id));
     },
-    enabled: yardIds.length > 0,
+    enabled: yardIds.length > 0 && !!user,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -48,21 +54,21 @@ export default function Home() {
     queryKey: ['horses', horseIds],
     queryFn: async () => {
       if (horseIds.length === 0) return [];
-      const allHorses = await base44.entities.Horse.list();
+      const allHorses = await base44.entities.Horse.filter({ created_by: user.email });
       return allHorses.filter(h => horseIds.includes(h.id));
     },
-    enabled: horseIds.length > 0,
+    enabled: horseIds.length > 0 && !!user,
     staleTime: 10 * 60 * 1000,
   });
 
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', today],
     queryFn: async () => {
-      const allTreatments = await base44.entities.Treatment.list();
+      const allTreatments = await base44.entities.Treatment.filter({ created_by: user.email });
       const todayApptIds = appointments.map(a => a.id);
       return allTreatments.filter(t => todayApptIds.includes(t.appointment_id));
     },
-    enabled: appointments.length > 0,
+    enabled: appointments.length > 0 && !!user,
     staleTime: 2 * 60 * 1000, // Cache for 2 minutes (updates frequently)
   });
 
@@ -83,7 +89,8 @@ export default function Home() {
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.list(),
+    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const getInvoice = (apptId) => invoices.find(inv => inv.appointment_id === apptId);
