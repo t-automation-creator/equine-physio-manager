@@ -17,10 +17,13 @@ export default function Home() {
 
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
     queryKey: ['appointments', today],
-    queryFn: () => base44.entities.Appointment.filter({ created_by: user.email, date: today }),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Appointment', query: { date: today } });
+      return data;
+    },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   // Only fetch data needed for today's appointments
@@ -32,8 +35,8 @@ export default function Home() {
     queryKey: ['clients', clientIds],
     queryFn: async () => {
       if (clientIds.length === 0) return [];
-      const allClients = await base44.entities.Client.filter({ created_by: user.email });
-      return allClients.filter(c => clientIds.includes(c.id));
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Client', query: {} });
+      return data.filter(c => clientIds.includes(c.id));
     },
     enabled: clientIds.length > 0 && !!user,
     staleTime: 10 * 60 * 1000,
@@ -43,8 +46,8 @@ export default function Home() {
     queryKey: ['yards', yardIds],
     queryFn: async () => {
       if (yardIds.length === 0) return [];
-      const allYards = await base44.entities.Yard.filter({ created_by: user.email });
-      return allYards.filter(y => yardIds.includes(y.id));
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
+      return data.filter(y => yardIds.includes(y.id));
     },
     enabled: yardIds.length > 0 && !!user,
     staleTime: 10 * 60 * 1000,
@@ -54,8 +57,8 @@ export default function Home() {
     queryKey: ['horses', horseIds],
     queryFn: async () => {
       if (horseIds.length === 0) return [];
-      const allHorses = await base44.entities.Horse.filter({ created_by: user.email });
-      return allHorses.filter(h => horseIds.includes(h.id));
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return data.filter(h => horseIds.includes(h.id));
     },
     enabled: horseIds.length > 0 && !!user,
     staleTime: 10 * 60 * 1000,
@@ -64,12 +67,12 @@ export default function Home() {
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', today],
     queryFn: async () => {
-      const allTreatments = await base44.entities.Treatment.filter({ created_by: user.email });
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: {} });
       const todayApptIds = appointments.map(a => a.id);
-      return allTreatments.filter(t => todayApptIds.includes(t.appointment_id));
+      return data.filter(t => todayApptIds.includes(t.appointment_id));
     },
     enabled: appointments.length > 0 && !!user,
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes (updates frequently)
+    staleTime: 2 * 60 * 1000,
   });
 
   const getClient = (id) => clients.find(c => c.id === id);
@@ -89,7 +92,10 @@ export default function Home() {
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Invoice', query: {} });
+      return data;
+    },
     enabled: !!user,
   });
 
