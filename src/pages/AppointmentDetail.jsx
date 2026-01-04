@@ -41,15 +41,21 @@ export default function AppointmentDetail() {
     enabled: !!appointment?.yard_id,
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.list(),
+    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', appointmentId],
-    queryFn: () => base44.entities.Treatment.filter({ appointment_id: appointmentId }),
-    enabled: !!appointmentId,
+    queryFn: () => base44.entities.Treatment.filter({ created_by: user.email, appointment_id: appointmentId }),
+    enabled: !!appointmentId && !!user,
   });
 
   const { data: invoice } = useQuery({

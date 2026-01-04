@@ -28,18 +28,24 @@ export default function ClientDetail() {
     enabled: !!clientId,
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: horses = [] } = useQuery({
     queryKey: ['horses', clientId],
     queryFn: async () => {
-      const allHorses = await base44.entities.Horse.list();
-      return allHorses.filter(h => h.owner_id === clientId);
+      const allHorses = await base44.entities.Horse.filter({ created_by: user.email, owner_id: clientId });
+      return allHorses;
     },
-    enabled: !!clientId,
+    enabled: !!clientId && !!user,
   });
 
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
-    queryFn: () => base44.entities.Yard.list(),
+    queryFn: () => base44.entities.Yard.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const getYard = (id) => yards.find(y => y.id === id);

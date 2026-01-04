@@ -13,14 +13,21 @@ import StatusBadge from '../components/ui/StatusBadge';
 export default function Invoices() {
   const [filter, setFilter] = useState('all');
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.list('-created_date'),
+    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }, '-created_date'),
+    enabled: !!user,
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const getClient = (id) => clients.find(c => c.id === id);

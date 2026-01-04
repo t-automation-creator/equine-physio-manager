@@ -12,14 +12,21 @@ import EmptyState from '../components/ui/EmptyState';
 export default function Clients() {
   const [search, setSearch] = useState('');
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('name'),
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, 'name'),
+    enabled: !!user,
   });
 
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.list(),
+    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const getHorseCount = (clientId) => horses.filter(h => h.owner_id === clientId).length;

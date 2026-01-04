@@ -14,29 +14,39 @@ import AppointmentCard from '../components/appointments/AppointmentCard';
 export default function Appointments() {
   const [filter, setFilter] = useState('upcoming');
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
     queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list('-date'),
+    queryFn: () => base44.entities.Appointment.filter({ created_by: user.email }, '-date'),
+    enabled: !!user,
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
-    queryFn: () => base44.entities.Yard.list(),
+    queryFn: () => base44.entities.Yard.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.list(),
+    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments'],
-    queryFn: () => base44.entities.Treatment.list(),
+    queryFn: () => base44.entities.Treatment.filter({ created_by: user.email }),
+    enabled: !!user,
   });
 
   const getClient = (id) => clients.find(c => c.id === id);
