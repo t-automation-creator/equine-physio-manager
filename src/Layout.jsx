@@ -10,7 +10,8 @@ import {
   Menu, 
   X,
   CreditCard,
-  Sparkles
+  Sparkles,
+  UserCircle
 } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
@@ -76,9 +77,26 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
               );
             })}
-          </div>
-        </div>
-      </nav>
+            </div>
+
+            <div className="border-t border-stone-100 mt-4 pt-4">
+            <Link
+              to={createPageUrl('Profile')}
+              onClick={() => setMenuOpen(false)}
+              className={`
+                flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all
+                ${currentPageName === 'Profile'
+                  ? 'bg-emerald-600 text-white' 
+                  : 'text-stone-600 hover:bg-stone-100'
+                }
+              `}
+            >
+              <UserCircle size={20} />
+              <span className="font-medium">Profile</span>
+            </Link>
+            </div>
+            </div>
+            </nav>
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-stone-200 flex-col">
@@ -108,8 +126,24 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
               );
             })}
-          </div>
-        </nav>
+            </div>
+
+            <div className="border-t border-stone-100 mt-4 pt-4">
+            <Link
+              to={createPageUrl('Profile')}
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                ${currentPageName === 'Profile'
+                  ? 'bg-emerald-600 text-white' 
+                  : 'text-stone-600 hover:bg-stone-100'
+                }
+              `}
+            >
+              <UserCircle size={20} />
+              <span className="font-medium">Profile</span>
+            </Link>
+            </div>
+            </nav>
       </aside>
 
       {/* Main Content */}

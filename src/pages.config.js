@@ -20,6 +20,7 @@ import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import SchedulingAssistant from './pages/SchedulingAssistant';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "YardDetail": YardDetail,
     "Yards": Yards,
     "SchedulingAssistant": SchedulingAssistant,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
