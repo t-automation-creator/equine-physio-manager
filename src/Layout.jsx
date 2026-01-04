@@ -154,7 +154,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-50 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-[100] md:hidden">
         <div className="flex items-center justify-around py-2 px-2">
           {[navItems[0], navItems[1], navItems[2], navItems[3], navItems[5]].map((item) => {
             const Icon = item.icon;
