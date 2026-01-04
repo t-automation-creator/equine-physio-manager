@@ -52,13 +52,18 @@ export default function HorseDetail() {
     enabled: !!horse?.yard_id,
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', horseId],
     queryFn: async () => {
-      const allTreatments = await base44.entities.Treatment.list('-created_date');
+      const allTreatments = await base44.entities.Treatment.filter({ created_by: user.email }, '-created_date');
       return allTreatments.filter(t => t.horse_id === horseId && t.status === 'completed');
     },
-    enabled: !!horseId,
+    enabled: !!horseId && !!user,
   });
 
   const handleExportPDF = async () => {

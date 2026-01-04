@@ -28,19 +28,27 @@ export default function NewAppointment() {
   const [selectedHorses, setSelectedHorses] = useState([]);
   const [notes, setNotes] = useState('');
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('name'),
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, 'name'),
+    enabled: !!user,
   });
 
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
-    queryFn: () => base44.entities.Yard.list('name'),
+    queryFn: () => base44.entities.Yard.filter({ created_by: user.email }, 'name'),
+    enabled: !!user,
   });
 
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.list('name'),
+    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }, 'name'),
+    enabled: !!user,
   });
 
   // Filter horses by selected client

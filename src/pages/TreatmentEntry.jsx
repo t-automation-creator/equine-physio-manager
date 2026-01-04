@@ -75,15 +75,20 @@ export default function TreatmentEntry() {
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: lastTreatment } = useQuery({
     queryKey: ['lastTreatment', horseId],
     queryFn: async () => {
-      const treatments = await base44.entities.Treatment.filter({ horse_id: horseId });
+      const treatments = await base44.entities.Treatment.filter({ created_by: user.email, horse_id: horseId });
       const completed = treatments.filter(t => t.status === 'completed' && t.id !== existingTreatment?.id);
       if (completed.length === 0) return null;
       return completed.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
     },
-    enabled: !!horseId,
+    enabled: !!horseId && !!user,
   });
 
   const { data: existingTreatment, isLoading: loadingTreatment } = useQuery({
