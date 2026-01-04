@@ -81,7 +81,9 @@ export default function SchedulingAssistant() {
   useEffect(() => {
     if (!conversation?.id) return;
 
+    console.log('Subscribing to conversation:', conversation.id);
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
+      console.log('Conversation update received:', data);
       setMessages(data.messages || []);
       setIsSending(false);
     });
@@ -97,17 +99,20 @@ export default function SchedulingAssistant() {
   const handleSend = async () => {
     if (!message.trim() || !conversation || isSending) return;
 
+    console.log('Sending message:', message, 'Conversation:', conversation);
     setIsSending(true);
     const userMessage = message;
     setMessage('');
 
     try {
-      await base44.agents.addMessage(conversation, {
+      const result = await base44.agents.addMessage(conversation, {
         role: "user",
         content: userMessage,
       });
+      console.log('Message sent successfully:', result);
     } catch (error) {
       console.error('Failed to send message:', error);
+      alert('Error: ' + error.message);
       setIsSending(false);
     }
   };
