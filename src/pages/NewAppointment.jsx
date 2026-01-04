@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { 
   Calendar,
   Clock,
@@ -27,6 +27,9 @@ export default function NewAppointment() {
   const [yardId, setYardId] = useState('');
   const [selectedHorses, setSelectedHorses] = useState([]);
   const [notes, setNotes] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState('weekly');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -36,8 +39,8 @@ export default function NewAppointment() {
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Client', query: {} });
-      return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const response = await base44.functions.invoke('getMyData', { entity: 'Client', query: {} });
+      return response.data.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     },
     enabled: !!user,
   });
@@ -45,8 +48,8 @@ export default function NewAppointment() {
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
-      return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const response = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
+      return response.data.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     },
     enabled: !!user,
   });
@@ -54,8 +57,8 @@ export default function NewAppointment() {
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
-      return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const response = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return response.data.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     },
     enabled: !!user,
   });
@@ -80,16 +83,52 @@ export default function NewAppointment() {
     );
   };
 
-  const handleSubmit = () => {
-    createMutation.mutate({
-      date,
-      time,
-      client_id: clientId,
-      yard_id: yardId || null,
-      horse_ids: selectedHorses,
-      notes,
-      status: 'scheduled',
-    });
+  const handleSubmit = async () => {
+    if (isRecurring && recurrenceEndDate) {
+      // Generate multiple appointments
+      const appointments = [];
+      const recurrenceId = `recurring_${Date.now()}`;
+      let currentDate = new Date(date);
+      const endDate = new Date(recurrenceEndDate);
+      
+      while (currentDate <= endDate) {
+        appointments.push({
+          date: format(currentDate, 'yyyy-MM-dd'),
+          time,
+          client_id: clientId,
+          yard_id: yardId || null,
+          horse_ids: selectedHorses,
+          notes,
+          status: 'scheduled',
+          is_recurring: true,
+          recurrence_id: recurrenceId,
+        });
+        
+        // Increment date based on pattern
+        if (recurrencePattern === 'daily') {
+          currentDate = addDays(currentDate, 1);
+        } else if (recurrencePattern === 'weekly') {
+          currentDate = addWeeks(currentDate, 1);
+        } else if (recurrencePattern === 'monthly') {
+          currentDate = addMonths(currentDate, 1);
+        }
+      }
+      
+      // Create all appointments
+      await base44.entities.Appointment.bulkCreate(appointments);
+      navigate(createPageUrl('Appointments'));
+    } else {
+      // Single appointment
+      createMutation.mutate({
+        date,
+        time,
+        client_id: clientId,
+        yard_id: yardId || null,
+        horse_ids: selectedHorses,
+        notes,
+        status: 'scheduled',
+      });
+    }
   };
 
   // Auto-select yard when horses are selected
@@ -218,6 +257,52 @@ export default function NewAppointment() {
             )}
           </div>
         )}
+
+        {/* Recurring Options */}
+        <div className="bg-white rounded-2xl border border-stone-200 p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Checkbox 
+              checked={isRecurring}
+              onCheckedChange={setIsRecurring}
+              className="data-[state=checked]:bg-emerald-600"
+            />
+            <Label className="text-base font-semibold text-stone-800">
+              Recurring Appointment
+            </Label>
+          </div>
+          
+          {isRecurring && (
+            <div className="space-y-4 pl-8">
+              <div>
+                <Label className="mb-2 block">Repeat</Label>
+                <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label className="mb-2 block">End Date</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                  <Input
+                    type="date"
+                    value={recurrenceEndDate}
+                    onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                    min={date}
+                    className="pl-10 rounded-xl"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Notes */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
