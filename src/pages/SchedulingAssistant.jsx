@@ -61,15 +61,19 @@ export default function SchedulingAssistant() {
           }
         });
         localStorage.setItem('scheduling_conversation_id', conv.id);
-        
-        // Send initial message to trigger proactive analysis
-        await base44.agents.addMessage(conv, {
-          role: "user",
-          content: "Hi! Please review my schedule and suggest any optimizations.",
-        });
       }
       
       setConversation(conv);
+      
+      // Send initial message after conversation is set
+      if (conv.messages?.length === 0) {
+        setTimeout(() => {
+          base44.agents.addMessage(conv, {
+            role: "user",
+            content: "Hi! Please review my schedule and suggest any optimizations.",
+          });
+        }, 500);
+      }
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to initialize conversation:', error);
@@ -81,9 +85,7 @@ export default function SchedulingAssistant() {
   useEffect(() => {
     if (!conversation?.id) return;
 
-    console.log('Subscribing to conversation:', conversation.id);
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
-      console.log('Conversation update received:', data);
       setMessages(data.messages || []);
       setIsSending(false);
     });
@@ -99,20 +101,17 @@ export default function SchedulingAssistant() {
   const handleSend = async () => {
     if (!message.trim() || !conversation || isSending) return;
 
-    console.log('Sending message:', message, 'Conversation:', conversation);
     setIsSending(true);
     const userMessage = message;
     setMessage('');
 
     try {
-      const result = await base44.agents.addMessage(conversation, {
+      await base44.agents.addMessage(conversation, {
         role: "user",
         content: userMessage,
       });
-      console.log('Message sent successfully:', result);
     } catch (error) {
       console.error('Failed to send message:', error);
-      alert('Error: ' + error.message);
       setIsSending(false);
     }
   };
