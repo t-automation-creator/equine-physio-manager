@@ -61,6 +61,12 @@ export default function SchedulingAssistant() {
           }
         });
         localStorage.setItem('scheduling_conversation_id', conv.id);
+        
+        // Send initial message to trigger proactive analysis
+        await base44.agents.addMessage(conv, {
+          role: "user",
+          content: "Hi! Please review my schedule and suggest any optimizations.",
+        });
       }
       
       setConversation(conv);
