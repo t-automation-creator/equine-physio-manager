@@ -50,7 +50,7 @@ export default function AppointmentDetail() {
     queryKey: ['horses'],
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
-      return data.data || [];
+      return data;
     },
     enabled: !!user,
   });
@@ -59,7 +59,7 @@ export default function AppointmentDetail() {
     queryKey: ['treatments', appointmentId],
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
-      return data.data || [];
+      return data;
     },
     enabled: !!appointmentId && !!user,
   });
