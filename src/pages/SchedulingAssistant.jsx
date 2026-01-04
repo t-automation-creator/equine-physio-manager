@@ -17,6 +17,7 @@ export default function SchedulingAssistant() {
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isSending, setIsSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef(null);
 
   const { data: user } = useQuery({
@@ -24,7 +25,7 @@ export default function SchedulingAssistant() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Initialize conversation on mount
+  // Initialize or restore conversation on mount
   useEffect(() => {
     if (user) {
       initializeConversation();
@@ -32,25 +33,41 @@ export default function SchedulingAssistant() {
   }, [user]);
 
   const initializeConversation = async () => {
+    setIsLoading(true);
     try {
-      const newConversation = await base44.agents.createConversation({
-        agent_name: "schedule_coordinator",
-        metadata: {
-          name: "Scheduling Session",
-          description: "AI-assisted appointment scheduling",
-        }
-      });
-      setConversation(newConversation);
+      // Check if we have a stored conversation ID
+      const storedConvId = localStorage.getItem('scheduling_conversation_id');
       
-      // Send initial greeting to trigger agent response
-      setTimeout(async () => {
-        await base44.agents.addMessage(newConversation, {
-          role: "user",
-          content: "Hello",
+      let conv;
+      if (storedConvId) {
+        try {
+          // Try to load existing conversation
+          conv = await base44.agents.getConversation(storedConvId);
+          setMessages(conv.messages || []);
+        } catch (error) {
+          // If conversation not found, create new one
+          console.log('Stored conversation not found, creating new one');
+          conv = null;
+        }
+      }
+      
+      if (!conv) {
+        // Create new conversation
+        conv = await base44.agents.createConversation({
+          agent_name: "schedule_coordinator",
+          metadata: {
+            name: "Scheduling Session",
+            description: "AI-assisted appointment scheduling",
+          }
         });
-      }, 500);
+        localStorage.setItem('scheduling_conversation_id', conv.id);
+      }
+      
+      setConversation(conv);
+      setIsLoading(false);
     } catch (error) {
       console.error('Failed to initialize conversation:', error);
+      setIsLoading(false);
     }
   };
 
@@ -96,7 +113,7 @@ export default function SchedulingAssistant() {
     }
   };
 
-  if (!user) {
+  if (!user || isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
