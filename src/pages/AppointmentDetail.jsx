@@ -49,8 +49,8 @@ export default function AppointmentDetail() {
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
-      return response.data.data;
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return data.data || [];
     },
     enabled: !!user,
   });
@@ -58,8 +58,8 @@ export default function AppointmentDetail() {
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', appointmentId],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
-      return response.data.data;
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
+      return data.data || [];
     },
     enabled: !!appointmentId && !!user,
   });
