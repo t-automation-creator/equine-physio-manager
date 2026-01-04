@@ -65,7 +65,10 @@ export default function TreatmentSummary() {
 
   const { data: allTreatments = [] } = useQuery({
     queryKey: ['treatments', appointmentId],
-    queryFn: () => base44.entities.Treatment.filter({ created_by: user.email, appointment_id: appointmentId }),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
+      return data;
+    },
     enabled: !!appointmentId && !!user,
   });
 

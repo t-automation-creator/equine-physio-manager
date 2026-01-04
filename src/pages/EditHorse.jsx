@@ -55,13 +55,19 @@ export default function EditHorse() {
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, 'name'),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Client', query: {} });
+      return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    },
     enabled: !!user,
   });
 
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
-    queryFn: () => base44.entities.Yard.filter({ created_by: user.email }, 'name'),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
+      return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    },
     enabled: !!user,
   });
 

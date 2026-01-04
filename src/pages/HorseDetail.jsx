@@ -60,8 +60,9 @@ export default function HorseDetail() {
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', horseId],
     queryFn: async () => {
-      const allTreatments = await base44.entities.Treatment.filter({ created_by: user.email }, '-created_date');
-      return allTreatments.filter(t => t.horse_id === horseId && t.status === 'completed');
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: {} });
+      return data.filter(t => t.horse_id === horseId && t.status === 'completed')
+        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: !!horseId && !!user,
   });

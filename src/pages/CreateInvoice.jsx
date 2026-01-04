@@ -51,35 +51,43 @@ export default function CreateInvoice() {
 
   const { data: treatments = [] } = useQuery({
     queryKey: ['treatments', appointmentId],
-    queryFn: () => base44.entities.Treatment.filter({ created_by: user.email, appointment_id: appointmentId }),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: { appointment_id: appointmentId } });
+      return data;
+    },
     enabled: !!appointmentId && !!user,
   });
 
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return data;
+    },
     enabled: !!user,
   });
 
   const { data: invoices = [] } = useQuery({
     queryKey: ['allInvoices'],
-    queryFn: () => base44.entities.Invoice.filter({ created_by: user.email }),
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Invoice', query: {} });
+      return data;
+    },
     enabled: !!user,
   });
 
   const { data: settings } = useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
-      const allSettings = await base44.entities.Settings.filter({ created_by: user.email });
-      if (allSettings.length === 0) {
-        // Create default settings if none exist
+      const { data } = await base44.functions.invoke('getMyData', { entity: 'Settings', query: {} });
+      if (data.length === 0) {
         return base44.entities.Settings.create({
           default_treatment_price: 60,
           default_travel_charge: 0,
           invoice_terms_days: 14
         });
       }
-      return allSettings[0];
+      return data[0];
     },
     enabled: !!user,
   });
