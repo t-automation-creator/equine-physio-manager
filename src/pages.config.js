@@ -16,7 +16,6 @@ import NewHorse from './pages/NewHorse';
 import NewYard from './pages/NewYard';
 import Payments from './pages/Payments';
 import Profile from './pages/Profile';
-import SchedulingAssistant from './pages/SchedulingAssistant';
 import TreatmentEntry from './pages/TreatmentEntry';
 import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
@@ -43,7 +42,6 @@ export const PAGES = {
     "NewYard": NewYard,
     "Payments": Payments,
     "Profile": Profile,
-    "SchedulingAssistant": SchedulingAssistant,
     "TreatmentEntry": TreatmentEntry,
     "TreatmentSummary": TreatmentSummary,
     "YardDetail": YardDetail,
