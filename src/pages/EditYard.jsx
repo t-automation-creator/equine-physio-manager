@@ -57,7 +57,7 @@ export default function EditYard() {
   };
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this stable? This cannot be undone.')) {
+    if (confirm('Are you sure you want to delete this yard? This cannot be undone.')) {
       deleteMutation.mutate();
     }
   };
@@ -72,8 +72,8 @@ export default function EditYard() {
 
   return (
     <div className="pb-6">
-      <PageHeader
-        title="Edit Stable"
+      <PageHeader 
+        title="Edit Yard"
         backTo={`YardDetail?id=${yardId}`}
       />
 
@@ -87,7 +87,7 @@ export default function EditYard() {
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Stable name"
+                  placeholder="Yard name"
                   className="pl-10 rounded-xl h-12"
                 />
               </div>
@@ -111,7 +111,7 @@ export default function EditYard() {
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any notes about this stable..."
+                placeholder="Any notes about this yard..."
                 className="rounded-xl"
               />
             </div>
@@ -142,7 +142,7 @@ export default function EditYard() {
           ) : (
             <Trash2 size={18} className="mr-2" />
           )}
-          Delete Stable
+          Delete Yard
         </Button>
       </div>
     </div>

@@ -249,10 +249,10 @@ export default function EditHorse() {
             </div>
 
             <div>
-              <Label className="mb-2 block">Stable</Label>
+              <Label className="mb-2 block">Yard</Label>
               <Select value={yardId} onValueChange={setYardId}>
                 <SelectTrigger className="rounded-xl h-12">
-                  <SelectValue placeholder="Select stable" />
+                  <SelectValue placeholder="Select yard" />
                 </SelectTrigger>
                 <SelectContent>
                   {yards.map((yard) => (

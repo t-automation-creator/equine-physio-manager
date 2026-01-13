@@ -60,7 +60,7 @@ export default function YardDetail() {
   }
 
   if (!yard) {
-    return <div>Stable not found</div>;
+    return <div>Yard not found</div>;
   }
 
   return (
@@ -97,10 +97,10 @@ export default function YardDetail() {
         </div>
       )}
 
-      {/* Horses at this stable */}
+      {/* Horses at this yard */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-stone-800">Horses at this Stable</h3>
+          <h3 className="font-semibold text-stone-800">Horses at this Yard</h3>
           <Link to={createPageUrl(`NewHorse?yardId=${yardId}`)}>
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 rounded-xl">
               <Plus size={16} className="mr-1" />
@@ -111,7 +111,7 @@ export default function YardDetail() {
 
         {horses.length === 0 ? (
           <div className="text-center py-8 text-stone-500">
-            <p>No horses at this stable yet</p>
+            <p>No horses at this yard yet</p>
           </div>
         ) : (
           <div className="space-y-3">

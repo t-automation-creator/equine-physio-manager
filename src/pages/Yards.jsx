@@ -38,8 +38,8 @@ export default function Yards() {
 
   return (
     <div className="pb-6">
-      <PageHeader
-        title="Stables"
+      <PageHeader 
+        title="Yards"
         action={
           <Link to={createPageUrl('NewYard')}>
             <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-5">
@@ -56,7 +56,7 @@ export default function Yards() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search stables..."
+          placeholder="Search yards..."
           className="pl-12 h-12 rounded-xl border-stone-200"
         />
       </div>
@@ -70,16 +70,16 @@ export default function Yards() {
       ) : filteredYards.length === 0 ? (
         <EmptyState
           icon={Building2}
-          title={search ? "No stables found" : "No stables yet"}
-          description={search
+          title={search ? "No yards found" : "No yards yet"}
+          description={search 
             ? "Try a different search term."
-            : "Add your first stable to get started."
+            : "Add your first yard to get started."
           }
           action={!search && (
             <Link to={createPageUrl('NewYard')}>
               <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-6">
                 <Plus size={20} className="mr-2" />
-                Add Stable
+                Add Yard
               </Button>
             </Link>
           )}

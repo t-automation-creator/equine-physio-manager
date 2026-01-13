@@ -199,12 +199,12 @@ export default function NewAppointment() {
           </Select>
         </div>
 
-        {/* Stable */}
+        {/* Yard */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">Stable (optional)</Label>
+          <Label className="text-base font-semibold text-stone-800 mb-4 block">Yard (optional)</Label>
           <Select value={yardId} onValueChange={setYardId}>
             <SelectTrigger className="rounded-xl h-12">
-              <SelectValue placeholder="Select a stable" />
+              <SelectValue placeholder="Select a yard" />
             </SelectTrigger>
             <SelectContent>
               {yards.map((yard) => (
