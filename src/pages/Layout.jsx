@@ -21,7 +21,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Today', page: 'Home', icon: Home },
     { name: 'Appointments', page: 'Appointments', icon: Calendar },
     { name: 'Clients', page: 'Clients', icon: Users },
-    { name: 'Yards', page: 'Yards', icon: Building2 },
+    { name: 'Stables', page: 'Yards', icon: Building2 },
     { name: 'Invoices', page: 'Invoices', icon: FileText },
     { name: 'Payments', page: 'Payments', icon: CreditCard },
   ];

@@ -206,10 +206,10 @@ export default function NewHorse() {
             </div>
 
             <div>
-              <Label className="mb-2 block">Yard</Label>
+              <Label className="mb-2 block">Stable</Label>
               <Select value={yardId} onValueChange={setYardId}>
                 <SelectTrigger className="rounded-xl h-12">
-                  <SelectValue placeholder="Select yard" />
+                  <SelectValue placeholder="Select stable" />
                 </SelectTrigger>
                 <SelectContent>
                   {yards.map((yard) => (

@@ -176,7 +176,7 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
               <div className="flex items-center gap-3">
                 <MapPin size={18} className="text-stone-400" />
                 <div>
-                  <p className="text-sm text-stone-500">Yard</p>
+                  <p className="text-sm text-stone-500">Stable</p>
                   <p className="font-medium text-stone-800">{yard.name}</p>
                 </div>
               </div>

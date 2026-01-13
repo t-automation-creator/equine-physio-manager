@@ -30,8 +30,8 @@ export default function NewYard() {
 
   return (
     <div className="pb-6">
-      <PageHeader 
-        title="New Yard"
+      <PageHeader
+        title="New Stable"
         backTo="Yards"
       />
 
@@ -45,7 +45,7 @@ export default function NewYard() {
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Yard name"
+                  placeholder="Stable name"
                   className="pl-10 rounded-xl h-12"
                 />
               </div>
@@ -69,7 +69,7 @@ export default function NewYard() {
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any notes about this yard..."
+                placeholder="Any notes about this stable..."
                 className="rounded-xl"
               />
             </div>
@@ -86,7 +86,7 @@ export default function NewYard() {
           ) : (
             <Check size={20} className="mr-2" />
           )}
-          Add Yard
+          Add Stable
         </Button>
       </div>
     </div>
