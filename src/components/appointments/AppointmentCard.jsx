@@ -1,0 +1,66 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../../utils';
+import { Clock, MapPin, ChevronRight } from 'lucide-react';
+import StatusBadge from '../ui/StatusBadge';
+
+export default function AppointmentCard({ 
+  appointment, 
+  client, 
+  yard, 
+  horses, 
+  treatments,
+  showDate = false 
+}) {
+  const getHorseStatus = (horseId) => {
+    const treatment = treatments?.find(t => t.horse_id === horseId);
+    return treatment?.status || 'not_started';
+  };
+
+  return (
+    <Link 
+      to={createPageUrl(`AppointmentDetail?id=${appointment.id}`)}
+      className="block bg-white rounded-2xl border border-stone-200 p-4 hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-semibold text-stone-800">{client?.name || 'Unknown Client'}</h3>
+          {yard && (
+            <div className="flex items-center gap-1.5 text-stone-500 text-sm mt-1">
+              <MapPin size={14} />
+              <span>{yard.name}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {showDate && (
+            <span className="text-sm text-stone-500">{appointment.date}</span>
+          )}
+          {appointment.time && (
+            <div className="flex items-center gap-1 text-stone-500 text-sm">
+              <Clock size={14} />
+              <span>{appointment.time}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {horses?.map((horse) => (
+          <div 
+            key={horse.id}
+            className="flex items-center justify-between py-2 px-3 bg-stone-50 rounded-xl"
+          >
+            <span className="font-medium text-stone-700">{horse.name}</span>
+            <StatusBadge status={getHorseStatus(horse.id)} />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-end mt-3 text-emerald-600">
+        <span className="text-sm font-medium">View Details</span>
+        <ChevronRight size={18} />
+      </div>
+    </Link>
+  );
+}
