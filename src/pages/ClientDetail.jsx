@@ -3,13 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { 
-  Phone, 
-  Mail, 
-  ChevronRight, 
+import {
+  Phone,
+  Mail,
+  ChevronRight,
   Plus,
   Edit,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
@@ -19,7 +20,7 @@ export default function ClientDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('id');
 
-  const { data: client, isLoading } = useQuery({
+  const { data: client, isLoading, isError, error } = useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
       const clients = await base44.entities.Client.filter({ id: clientId });
@@ -37,18 +38,18 @@ export default function ClientDetail() {
     queryKey: ['horses', clientId],
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: { owner_id: clientId } });
-      return data;
+      return data || [];
     },
-    enabled: !!clientId && !!user,
+    enabled: !!clientId && !!user?.email,
   });
 
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
-      return data;
+      return data || [];
     },
-    enabled: !!user,
+    enabled: !!user?.email,
   });
 
   const getYard = (id) => yards.find(y => y.id === id);
@@ -61,8 +62,29 @@ export default function ClientDetail() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="pb-6">
+        <PageHeader title="Client" backTo="Clients" />
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-red-800 mb-2">Failed to load client</h3>
+          <p className="text-red-600 text-sm">{error?.message || 'An unexpected error occurred'}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!client) {
-    return <div>Client not found</div>;
+    return (
+      <div className="pb-6">
+        <PageHeader title="Client" backTo="Clients" />
+        <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center">
+          <h3 className="font-semibold text-stone-800 mb-2">Client not found</h3>
+          <p className="text-stone-600 text-sm">The client you're looking for doesn't exist or has been deleted.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { Plus, Search, Users, ChevronRight, Phone, Mail } from 'lucide-react';
+import { Plus, Search, Users, ChevronRight, Phone, Mail, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import PageHeader from '../components/ui/PageHeader';
@@ -17,16 +17,16 @@ export default function Clients() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clients = [], isLoading, isError, error } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, 'name'),
-    enabled: !!user,
+    queryFn: () => base44.entities.Client.filter({ created_by: user?.email }, 'name'),
+    enabled: !!user?.email,
   });
 
   const { data: horses = [] } = useQuery({
     queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }),
-    enabled: !!user,
+    queryFn: () => base44.entities.Horse.filter({ created_by: user?.email }),
+    enabled: !!user?.email,
   });
 
   const getHorseCount = (clientId) => horses.filter(h => h.owner_id === clientId).length;
@@ -35,6 +35,19 @@ export default function Clients() {
     client.name?.toLowerCase().includes(search.toLowerCase()) ||
     client.email?.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isError) {
+    return (
+      <div className="pb-6">
+        <PageHeader title="Clients" />
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-red-800 mb-2">Failed to load clients</h3>
+          <p className="text-red-600 text-sm">{error?.message || 'An unexpected error occurred'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-6">
