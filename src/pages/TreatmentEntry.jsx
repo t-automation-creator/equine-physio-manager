@@ -291,9 +291,15 @@ export default function TreatmentEntry() {
           const result = response.data;
 
           if (!result || result.error) {
-            // Show specific error from API
             const errorMsg = result?.error || 'Transcription failed';
-            throw new Error(errorMsg);
+
+            // Handle rate limiting specifically
+            if (errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
+              alert('Too many transcription requests. Please wait a minute and try again.');
+            } else {
+              alert(`Transcription failed: ${errorMsg}`);
+            }
+            return;
           }
 
           const { text } = result;
@@ -315,7 +321,13 @@ export default function TreatmentEntry() {
           });
         } catch (error) {
           console.error('Transcription error:', error);
-          alert(`Transcription failed: ${error.message}`);
+          const errorMsg = error.message || 'Unknown error';
+
+          if (error.response?.status === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
+            alert('Too many transcription requests. Please wait a minute and try again.');
+          } else {
+            alert(`Transcription failed: ${errorMsg}`);
+          }
         } finally {
           setTranscribing(false);
         }
