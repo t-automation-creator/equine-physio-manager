@@ -226,6 +226,7 @@ export default function TreatmentEntry() {
 
   // Web Speech API for real-time audio transcription
   // Supported in Chrome/Edge (desktop + mobile) and Safari (iOS 14.5+)
+  // Cache bust: 2026-01-14T15:30:00Z
   const startRecording = async () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
