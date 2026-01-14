@@ -141,29 +141,31 @@ export default function Appointments() {
         </Button>
       </div>
 
-      {/* Filter Tabs */}
-      <Tabs value={filter} onValueChange={handleFilterChange} className="mb-6">
-        <TabsList className="w-full bg-stone-100 p-1 rounded-xl">
-          <TabsTrigger 
-            value="today" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white"
-          >
-            Today
-          </TabsTrigger>
-          <TabsTrigger 
-            value="upcoming" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white"
-          >
-            Upcoming
-          </TabsTrigger>
-          <TabsTrigger 
-            value="past" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white"
-          >
-            Past
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Filter Tabs - Only show in list view or when no date is selected in calendar */}
+      {(viewMode === 'list' || !selectedDate) && (
+        <Tabs value={filter} onValueChange={handleFilterChange} className="mb-6">
+          <TabsList className="w-full bg-stone-100 p-1 rounded-xl">
+            <TabsTrigger 
+              value="today" 
+              className="flex-1 rounded-lg data-[state=active]:bg-white"
+            >
+              Today
+            </TabsTrigger>
+            <TabsTrigger 
+              value="upcoming" 
+              className="flex-1 rounded-lg data-[state=active]:bg-white"
+            >
+              Upcoming
+            </TabsTrigger>
+            <TabsTrigger 
+              value="past" 
+              className="flex-1 rounded-lg data-[state=active]:bg-white"
+            >
+              Past
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Calendar View */}
       {viewMode === 'calendar' && (
@@ -171,6 +173,7 @@ export default function Appointments() {
           <CalendarView 
             appointments={appointments}
             onDayClick={handleDayClick}
+            selectedDate={selectedDate}
           />
           {selectedDate && (
             <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">

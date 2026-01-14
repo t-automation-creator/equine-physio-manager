@@ -20,8 +20,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
  * 
  * @param {Array} appointments - Array of appointment objects with { id, date, time, client_id, horse_ids, status }
  * @param {Function} onDayClick - Callback when a day is clicked, receives the date
+ * @param {Date} selectedDate - Currently selected date to highlight
  */
-export default function CalendarView({ appointments = [], onDayClick }) {
+export default function CalendarView({ appointments = [], onDayClick, selectedDate = null }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Navigate to previous month
@@ -114,6 +115,7 @@ export default function CalendarView({ appointments = [], onDayClick }) {
           const hasAppointments = dayAppointments.length > 0;
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isTodayDate = isToday(day);
+          const isSelected = selectedDate && isSameDay(day, selectedDate);
 
           return (
             <button
@@ -124,19 +126,23 @@ export default function CalendarView({ appointments = [], onDayClick }) {
                 relative aspect-square min-h-[44px] rounded-xl flex flex-col items-center justify-center
                 transition-all duration-200
                 ${isCurrentMonth ? 'text-stone-800' : 'text-stone-400'}
-                ${isTodayDate && isCurrentMonth ? 'bg-emerald-50 border-2 border-emerald-600 font-semibold' : ''}
-                ${!isTodayDate && isCurrentMonth ? 'hover:bg-stone-50' : ''}
-                ${hasAppointments && !isTodayDate ? 'cursor-pointer active:scale-95' : ''}
+                ${isSelected && isCurrentMonth ? 'bg-emerald-600 text-white font-semibold ring-2 ring-emerald-600 ring-offset-2' : ''}
+                ${isTodayDate && !isSelected && isCurrentMonth ? 'bg-emerald-50 border-2 border-emerald-600 font-semibold' : ''}
+                ${!isTodayDate && !isSelected && isCurrentMonth ? 'hover:bg-stone-50' : ''}
+                ${hasAppointments && !isSelected ? 'cursor-pointer active:scale-95' : ''}
                 ${!hasAppointments ? 'cursor-default' : ''}
               `}
             >
               {/* Day Number */}
-              <span className={`text-sm sm:text-base ${isTodayDate ? 'text-emerald-600' : ''}`}>
+              <span className={`text-sm sm:text-base ${
+                isSelected ? 'text-white' : 
+                isTodayDate ? 'text-emerald-600' : ''
+              }`}>
                 {format(day, 'd')}
               </span>
 
               {/* Appointment Badge */}
-              {hasAppointments && (
+              {hasAppointments && !isSelected && (
                 <span className={`
                   absolute bottom-1 left-1/2 transform -translate-x-1/2
                   min-w-[20px] h-5 px-1.5 rounded-full
@@ -150,6 +156,13 @@ export default function CalendarView({ appointments = [], onDayClick }) {
                   {dayAppointments.length}
                 </span>
               )}
+              
+              {/* Selected day shows count in white badge */}
+              {hasAppointments && isSelected && (
+                <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-medium bg-white text-emerald-600">
+                  {dayAppointments.length}
+                </span>
+              )}
             </button>
           );
         })}
@@ -160,6 +173,10 @@ export default function CalendarView({ appointments = [], onDayClick }) {
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded border-2 border-emerald-600 bg-emerald-50"></div>
           <span className="text-xs sm:text-sm text-stone-600">Today</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-emerald-600"></div>
+          <span className="text-xs sm:text-sm text-stone-600">Selected</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-emerald-100 flex items-center justify-center">
