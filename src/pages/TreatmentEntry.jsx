@@ -247,20 +247,14 @@ export default function TreatmentEntry() {
           });
           const base64Audio = reader.result.split(',')[1];
 
-          // Call serverless function to transcribe via OpenAI Whisper
-          const response = await fetch('/api/transcribe-audio', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ audioBlob: base64Audio }),
-          });
+          // Call Base44 serverless function to transcribe via OpenAI Whisper
+          const result = await base44.functions.transcribeAudio({ audioBlob: base64Audio });
 
-          if (!response.ok) {
-            throw new Error('Transcription failed');
+          if (!result || result.error) {
+            throw new Error(result?.error || 'Transcription failed');
           }
 
-          const { text } = await response.json();
+          const { text } = result;
           const transcribedText = text || '';
           const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
           setNotes(newNotes);

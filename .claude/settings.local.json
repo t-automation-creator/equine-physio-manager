@@ -15,7 +15,8 @@
       "Bash(tree:*)",
       "Bash(npm run build:*)",
       "Bash(where:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
