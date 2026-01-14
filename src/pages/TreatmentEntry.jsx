@@ -285,14 +285,17 @@ export default function TreatmentEntry() {
           const base64Audio = reader.result.split(',')[1];
 
           // Call Base44 serverless function to transcribe via OpenAI Whisper
+          console.log(`[Frontend] Sending transcription request: mimeType=${mimeType}, audioSize=${base64Audio.length}`);
           const response = await base44.functions.invoke('transcribeAudio', {
             audioBlob: base64Audio,
             mimeType: mimeType
           });
+          console.log('[Frontend] Received response:', response);
           const result = response.data;
 
           if (!result || result.error) {
             const errorMsg = result?.error || 'Transcription failed';
+            console.error('[Frontend] Transcription error:', { errorMsg, fullResult: result });
 
             // Handle rate limiting with helpful info about retries
             if (result?.retryAfter) {
@@ -337,7 +340,13 @@ export default function TreatmentEntry() {
             photo_urls: photoUrls,
           });
         } catch (error) {
-          console.error('Transcription error:', error);
+          console.error('[Frontend] Transcription exception:', error);
+          console.error('[Frontend] Error details:', {
+            message: error.message,
+            status: error.response?.status,
+            response: error.response,
+            stack: error.stack
+          });
           const errorMsg = error.message || 'Unknown error';
 
           if (error.response?.status === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {

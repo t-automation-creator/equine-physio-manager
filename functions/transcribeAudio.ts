@@ -16,8 +16,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No audio data provided' }, { status: 400 });
     }
 
+    console.log(`[Transcribe] Received audio: mimeType=${mimeType}, base64Length=${audioBlob.length}`);
+
     // Convert base64 to binary
     const audioBuffer = Uint8Array.from(atob(audioBlob), c => c.charCodeAt(0));
+
+    console.log(`[Transcribe] Converted to buffer: size=${audioBuffer.length} bytes (${(audioBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
 
     // Determine file extension from MIME type
     const fileExt = mimeType.includes('mp4') ? 'mp4'
@@ -38,7 +42,9 @@ Deno.serve(async (req) => {
     }
 
     // Call OpenAI Whisper API with retry logic
-    console.log(`[Transcribe] Starting transcription for user: ${user.email}, format: ${mimeType}`);
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
+    console.log(`[Transcribe] Starting transcription for user: ${user.email}, format: ${mimeType}, device: ${isMobile ? 'mobile' : 'desktop'}, UA: ${userAgent.substring(0, 100)}`);
 
     const response = await retryWithExponentialBackoff(
       async () => {
@@ -53,14 +59,16 @@ Deno.serve(async (req) => {
         // Check if response should trigger retry
         if (!res.ok) {
           const errorText = await res.text();
+          console.log(`[Transcribe] OpenAI error response (status ${res.status}):`, errorText);
 
           // Parse error message
           let errorMsg = 'Transcription failed';
           try {
             const errorJson = JSON.parse(errorText);
             errorMsg = errorJson.error?.message || errorMsg;
-          } catch {
-            // Use default message if parsing fails
+            console.log(`[Transcribe] Parsed error:`, errorJson);
+          } catch (e) {
+            console.log(`[Transcribe] Could not parse error JSON:`, e);
           }
 
           // For retryable errors (429, 500, 503), throw to trigger retry
