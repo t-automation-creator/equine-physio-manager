@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     formData.append('language', 'en');
 
     // Get OpenAI API key from environment
-    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiKey = Deno.env.get('OpenAPIwhisper');
 
     if (!openaiKey) {
       return Response.json({ error: 'OpenAI API key not configured' }, { status: 500 });
