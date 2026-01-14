@@ -271,7 +271,10 @@ export default function TreatmentEntry() {
         // Check file size (warn if > 5MB)
         const sizeMB = blob.size / (1024 * 1024);
         if (sizeMB > 5) {
-          alert(`Recording is large (${sizeMB.toFixed(1)}MB). Transcription may take longer.`);
+          toast(`Recording is large (${sizeMB.toFixed(1)}MB). Transcription may take longer.`, {
+            icon: '⚠️',
+            duration: 5000
+          });
         }
 
         setTranscribing(true);
