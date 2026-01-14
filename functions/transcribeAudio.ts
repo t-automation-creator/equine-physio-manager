@@ -53,6 +53,18 @@ Deno.serve(async (req) => {
       try {
         const errorJson = JSON.parse(errorText);
         const errorMsg = errorJson.error?.message || 'Transcription failed';
+
+        // Add helpful context for common errors
+        if (response.status === 429) {
+          return Response.json({
+            error: 'OpenAI rate limit reached. Please check your OpenAI account has credits and is not rate limited. Error: ' + errorMsg
+          }, { status: 429 });
+        } else if (response.status === 401) {
+          return Response.json({
+            error: 'OpenAI API authentication failed. Please check the API key is valid. Error: ' + errorMsg
+          }, { status: 401 });
+        }
+
         return Response.json({ error: errorMsg }, { status: response.status });
       } catch {
         return Response.json({ error: 'Transcription failed. Please try again.' }, { status: 500 });
