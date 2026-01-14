@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { debounce } from 'lodash';
-import { 
-  Camera, 
-  Save, 
-  Check, 
+import toast from 'react-hot-toast';
+import {
+  Camera,
+  Save,
+  Check,
   Upload,
   X,
   Calendar,
@@ -293,11 +294,24 @@ export default function TreatmentEntry() {
           if (!result || result.error) {
             const errorMsg = result?.error || 'Transcription failed';
 
-            // Handle rate limiting specifically
-            if (errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
-              alert('Too many transcription requests. Please wait a minute and try again.');
-            } else {
-              alert(`Transcription failed: ${errorMsg}`);
+            // Handle rate limiting with helpful info about retries
+            if (result?.retryAfter) {
+              toast.error(
+                `Rate limit reached. The system automatically tried 5 times over 60 seconds. Please wait ${result.retryAfter} seconds before recording again.`,
+                { duration: 8000 }
+              );
+            }
+            // Handle authentication errors
+            else if (errorMsg.includes('authentication') || errorMsg.includes('API key')) {
+              toast.error('API configuration error. Please contact support.', { duration: 5000 });
+            }
+            // Handle rate limit errors
+            else if (errorMsg.toLowerCase().includes('rate limit')) {
+              toast.error('Rate limit reached. Please wait 1 minute and try again.', { duration: 5000 });
+            }
+            // Generic errors
+            else {
+              toast.error(`Transcription failed: ${errorMsg}`, { duration: 4000 });
             }
             return;
           }
@@ -306,12 +320,15 @@ export default function TreatmentEntry() {
           const transcribedText = text || '';
 
           if (!transcribedText.trim()) {
-            alert('No speech detected. Please speak clearly and try again.');
+            toast.error('No speech detected. Please speak clearly and try again.', { duration: 4000 });
             return;
           }
 
           const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
           setNotes(newNotes);
+
+          // Show success feedback
+          toast.success('Voice note transcribed successfully!', { duration: 2000 });
 
           autoSave({
             notes: newNotes,
@@ -324,9 +341,9 @@ export default function TreatmentEntry() {
           const errorMsg = error.message || 'Unknown error';
 
           if (error.response?.status === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
-            alert('Too many transcription requests. Please wait a minute and try again.');
+            toast.error('Rate limit reached. Please wait 1 minute and try again.', { duration: 5000 });
           } else {
-            alert(`Transcription failed: ${errorMsg}`);
+            toast.error(`Transcription failed: ${errorMsg}`, { duration: 4000 });
           }
         } finally {
           setTranscribing(false);
@@ -461,7 +478,7 @@ export default function TreatmentEntry() {
               {transcribing ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
-                  <span className="text-base">Transcribing...</span>
+                  <span className="text-base">Transcribing (may take 30-60s)...</span>
                 </>
               ) : recording ? (
                 <>

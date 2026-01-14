@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { retryWithExponentialBackoff } from './utils/retryWithBackoff.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -36,51 +37,89 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'OpenAI API key not configured' }, { status: 500 });
     }
 
-    // Call OpenAI Whisper API
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiKey}`,
-      },
-      body: formData,
-    });
+    // Call OpenAI Whisper API with retry logic
+    console.log(`[Transcribe] Starting transcription for user: ${user.email}, format: ${mimeType}`);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
+    const response = await retryWithExponentialBackoff(
+      async () => {
+        const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiKey}`,
+          },
+          body: formData,
+        });
 
-      // Parse OpenAI error for specific messages
-      try {
-        const errorJson = JSON.parse(errorText);
-        const errorMsg = errorJson.error?.message || 'Transcription failed';
+        // Check if response should trigger retry
+        if (!res.ok) {
+          const errorText = await res.text();
 
-        // Add helpful context for common errors
-        if (response.status === 429) {
-          return Response.json({
-            error: 'OpenAI rate limit reached. Please check your OpenAI account has credits and is not rate limited. Error: ' + errorMsg
-          }, { status: 429 });
-        } else if (response.status === 401) {
-          return Response.json({
-            error: 'OpenAI API authentication failed. Please check the API key is valid. Error: ' + errorMsg
-          }, { status: 401 });
+          // Parse error message
+          let errorMsg = 'Transcription failed';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMsg = errorJson.error?.message || errorMsg;
+          } catch {
+            // Use default message if parsing fails
+          }
+
+          // For retryable errors (429, 500, 503), throw to trigger retry
+          if ([429, 500, 503, 502].includes(res.status)) {
+            const error = new Error(errorMsg) as any;
+            error.status = res.status;
+            throw error;
+          }
+
+          // For non-retryable errors (401, 400), return error response immediately
+          if (res.status === 401) {
+            throw new Error(`Authentication failed: ${errorMsg}`);
+          }
+
+          // Generic error
+          const error = new Error(errorMsg) as any;
+          error.status = res.status;
+          throw error;
         }
 
-        return Response.json({ error: errorMsg }, { status: response.status });
-      } catch {
-        return Response.json({ error: 'Transcription failed. Please try again.' }, { status: 500 });
+        return res;
+      },
+      {
+        maxRetries: 5,
+        initialDelayMs: 1000,
+        maxDelayMs: 30000,
+        backoffMultiplier: 2,
+        retryableStatuses: [429, 500, 503, 502]
       }
-    }
+    );
 
     const result = await response.json();
 
     // Validate response has text
     if (!result.text) {
+      console.error('[Transcribe] No text in response');
       return Response.json({ error: 'No transcription returned' }, { status: 500 });
     }
 
+    console.log(`[Transcribe] Success! Transcribed ${result.text.length} characters`);
     return Response.json({ text: result.text });
-  } catch (error) {
-    console.error('Transcription error:', error);
-    return Response.json({ error: error.message || 'Unknown error occurred' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[Transcribe] Final error after retries:', error);
+
+    // Return specific error messages based on error type
+    if (error.status === 429) {
+      return Response.json({
+        error: 'Rate limit exceeded after 5 retry attempts. Please wait 1 minute and try again.',
+        retryAfter: 60,
+        attemptsMade: 6
+      }, { status: 429 });
+    } else if (error.status === 401) {
+      return Response.json({
+        error: 'OpenAI API authentication failed. Please check the API key configuration.',
+      }, { status: 401 });
+    } else {
+      return Response.json({
+        error: error.message || 'Transcription failed after multiple attempts',
+      }, { status: error.status || 500 });
+    }
   }
 });
