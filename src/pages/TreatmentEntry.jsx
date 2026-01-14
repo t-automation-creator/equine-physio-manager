@@ -52,8 +52,8 @@ export default function TreatmentEntry() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [transcribing, setTranscribing] = useState(false);
+  const [recognition, setRecognition] = useState(null);
+  const [liveTranscript, setLiveTranscript] = useState('');
 
   const { data: horse } = useQuery({
     queryKey: ['horse', horseId],
@@ -224,55 +224,76 @@ export default function TreatmentEntry() {
     });
   };
 
+  // Web Speech API for real-time audio transcription
+  // Supported in Chrome/Edge (desktop + mobile) and Safari (iOS 14.5+)
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
-    const chunks = [];
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    recorder.ondataavailable = (e) => chunks.push(e.data);
-    recorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: 'audio/mp4' });
-      const file = new File([blob], 'voice-note.m4a', { type: 'audio/mp4' });
-      
-      stream.getTracks().forEach(track => track.stop());
-      
-      setTranscribing(true);
-      try {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        
-        const result = await base44.integrations.Core.InvokeLLM({
-          prompt: 'Transcribe this audio recording. Only return the transcribed text, nothing else.',
-          file_urls: [file_url]
-        });
-        
-        const transcribedText = result || '';
-        const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
-        setNotes(newNotes);
-        
-        autoSave({
-          notes: newNotes,
-          treatment_types: selectedTypes,
-          follow_up_date: followUpDate,
-          photo_urls: photoUrls,
-        });
-      } catch (error) {
-        console.error('Voice recording error:', error);
-        alert('Voice recording is not currently supported. Please type your notes instead.');
-      } finally {
-        setTranscribing(false);
-      }
-    };
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please use Chrome or Safari.');
+      return;
+    }
 
-    recorder.start();
-    setMediaRecorder(recorder);
-    setRecording(true);
+    try {
+      const recognitionInstance = new SpeechRecognition();
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'en-GB';
+
+      let finalTranscript = '';
+
+      recognitionInstance.onresult = (event) => {
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+            // Auto-append final results to notes
+            const newNotes = notes ? `${notes}\n\n${finalTranscript.trim()}` : finalTranscript.trim();
+            setNotes(newNotes);
+            autoSave({
+              notes: newNotes,
+              treatment_types: selectedTypes,
+              follow_up_date: followUpDate,
+              photo_urls: photoUrls,
+            });
+            finalTranscript = ''; // Reset after saving
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // Update live preview with interim results
+        setLiveTranscript(interimTranscript);
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setRecording(false);
+        setLiveTranscript('');
+        if (event.error === 'not-allowed') {
+          alert('Microphone access denied. Please enable microphone permissions.');
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        setRecording(false);
+        setLiveTranscript('');
+      };
+
+      recognitionInstance.start();
+      setRecognition(recognitionInstance);
+      setRecording(true);
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error);
+      alert('Failed to start voice recording. Please try again.');
+    }
   };
 
   const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      setRecording(false);
-      setMediaRecorder(null);
+    if (recognition) {
+      recognition.stop();
     }
   };
 
@@ -373,34 +394,34 @@ export default function TreatmentEntry() {
             </Label>
             <button
               onClick={recording ? stopRecording : startRecording}
-              disabled={transcribing}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all
-                ${recording 
-                  ? 'bg-red-500 text-white animate-pulse' 
-                  : transcribing
-                  ? 'bg-stone-300 text-stone-600'
+                flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all min-h-[44px]
+                ${recording
+                  ? 'bg-red-600 text-white hover:bg-red-700'
                   : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }
               `}
             >
-              {transcribing ? (
+              {recording ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
-                  <span className="text-sm">Transcribing...</span>
-                </>
-              ) : recording ? (
-                <>
-                  <Square size={18} />
-                  <span className="text-sm">Stop</span>
+                  <Square size={20} fill="currentColor" />
+                  <span className="text-base">Stop Recording</span>
                 </>
               ) : (
                 <>
-                  <Mic size={18} />
-                  <span className="text-sm">Record</span>
+                  <Mic size={20} />
+                  <span className="text-base">Start Voice Note</span>
                 </>
               )}
             </button>
+
+            {/* Live Transcript Overlay */}
+            {recording && liveTranscript && (
+              <div className="fixed bottom-32 left-4 right-4 bg-emerald-50 border-2 border-emerald-600 rounded-2xl p-4 shadow-lg z-10 animate-in fade-in slide-in-from-bottom-4">
+                <p className="text-xs font-medium text-emerald-700 mb-2">Live Transcript:</p>
+                <p className="text-sm text-stone-800">{liveTranscript}</p>
+              </div>
+            )}
           </div>
           <Textarea
             value={notes}
