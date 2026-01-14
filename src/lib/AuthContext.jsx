@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // Prevents flickering on first load
 
   useEffect(() => {
     checkAppState();
@@ -36,15 +37,20 @@ export const AuthProvider = ({ children }) => {
       try {
         const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
         setAppPublicSettings(publicSettings);
-        
+
         // If we got the app public settings successfully, check if user is authenticated
         if (appParams.token) {
           await checkUserAuth();
+          // checkUserAuth will set isLoadingAuth to false
         } else {
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
         }
+
+        // Only set loading to false after auth check is complete
+        // This prevents flickering by keeping the loading screen until everything is ready
         setIsLoadingPublicSettings(false);
+        setIsInitialLoad(false);
       } catch (appError) {
         console.error('App state check failed:', appError);
         
@@ -75,6 +81,7 @@ export const AuthProvider = ({ children }) => {
         }
         setIsLoadingPublicSettings(false);
         setIsLoadingAuth(false);
+        setIsInitialLoad(false);
       }
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -84,6 +91,7 @@ export const AuthProvider = ({ children }) => {
       });
       setIsLoadingPublicSettings(false);
       setIsLoadingAuth(false);
+      setIsInitialLoad(false);
     }
   };
 
@@ -129,11 +137,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
       isLoadingAuth,
       isLoadingPublicSettings,
+      isInitialLoad,
       authError,
       appPublicSettings,
       logout,
