@@ -284,10 +284,11 @@ export default function TreatmentEntry() {
           const base64Audio = reader.result.split(',')[1];
 
           // Call Base44 serverless function to transcribe via OpenAI Whisper
-          const result = await base44.functions.transcribeAudio({
+          const response = await base44.functions.invoke('transcribeAudio', {
             audioBlob: base64Audio,
             mimeType: mimeType
           });
+          const result = response.data;
 
           if (!result || result.error) {
             // Show specific error from API
