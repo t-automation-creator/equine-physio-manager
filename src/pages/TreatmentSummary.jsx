@@ -10,7 +10,9 @@ import {
   Calendar, 
   Edit, 
   Check,
-  Loader2
+  Loader2,
+  Mic,
+  Keyboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +29,30 @@ export default function TreatmentSummary() {
 
   const [editing, setEditing] = useState(false);
   const [editedNotes, setEditedNotes] = useState('');
+
+  // Parse notes - handles both new JSON format and legacy plain text
+  const parseNotes = (notesString) => {
+    if (!notesString) return [];
+    try {
+      const parsed = JSON.parse(notesString);
+      if (Array.isArray(parsed)) return parsed;
+      return [{ id: 1, text: notesString, timestamp: null, type: 'typed' }];
+    } catch {
+      return [{ id: 1, text: notesString, timestamp: null, type: 'typed' }];
+    }
+  };
+
+  // Format timestamp for display
+  const formatTimestamp = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'short',
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
 
   const { data: treatment, isLoading } = useQuery({
     queryKey: ['treatment', appointmentId, horseId],
@@ -202,9 +228,38 @@ export default function TreatmentSummary() {
               </div>
             </div>
           ) : (
-            <p className="text-stone-700 whitespace-pre-wrap">
-              {treatment.notes || 'No notes added'}
-            </p>
+            <div className="space-y-2">
+              {parseNotes(treatment.notes).length > 0 ? (
+                parseNotes(treatment.notes).map((entry) => (
+                  <div 
+                    key={entry.id}
+                    className={`p-3 rounded-xl border ${
+                      entry.type === 'voice' 
+                        ? 'bg-blue-50 border-blue-200' 
+                        : 'bg-stone-50 border-stone-200'
+                    }`}
+                  >
+                    {entry.timestamp && (
+                      <div className="flex items-center gap-2 text-xs text-stone-500 mb-1">
+                        {entry.type === 'voice' ? (
+                          <Mic size={12} className="text-blue-500" />
+                        ) : (
+                          <Keyboard size={12} className="text-stone-400" />
+                        )}
+                        <span className="font-medium">
+                          {entry.type === 'voice' ? 'Voice' : 'Typed'}
+                        </span>
+                        <span>•</span>
+                        <span>{formatTimestamp(entry.timestamp)}</span>
+                      </div>
+                    )}
+                    <p className="text-stone-700 whitespace-pre-wrap text-sm">{entry.text}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-stone-500 italic">No notes added</p>
+              )}
+            </div>
           )}
         </div>
 
@@ -244,7 +299,7 @@ export default function TreatmentSummary() {
           <Link to={createPageUrl(`AppointmentDetail?id=${appointmentId}`)}>
             <Button 
               variant="outline"
-              className="w-full rounded-xl h-14 text-lg border-2"
+              className="w-full rounded-xl h-12 font-semibold border-2"
             >
               <Plus size={20} className="mr-2" />
               Treat Another Horse ({remainingHorses.length} remaining)
@@ -254,7 +309,7 @@ export default function TreatmentSummary() {
 
         {allComplete && !invoice && (
           <Link to={createPageUrl(`CreateInvoice?appointmentId=${appointmentId}`)}>
-            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-14 text-lg">
+            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold">
               <FileText size={20} className="mr-2" />
               Create Invoice
             </Button>
@@ -265,7 +320,7 @@ export default function TreatmentSummary() {
           <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
             <Button 
               variant="outline"
-              className="w-full rounded-xl h-14 text-lg border-2"
+              className="w-full rounded-xl h-12 font-semibold border-2"
             >
               <FileText size={20} className="mr-2" />
               View Invoice

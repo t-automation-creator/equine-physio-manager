@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,11 @@ import {
   Square,
   User,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Plus,
+  Trash2,
+  MessageSquare,
+  Keyboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,7 +50,8 @@ export default function TreatmentEntry() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const [notes, setNotes] = useState('');
+  const [noteEntries, setNoteEntries] = useState([]);
+  const [currentNote, setCurrentNote] = useState('');
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [followUpDate, setFollowUpDate] = useState('');
   const [photoUrls, setPhotoUrls] = useState([]);
@@ -109,12 +114,42 @@ export default function TreatmentEntry() {
 
   useEffect(() => {
     if (existingTreatment) {
-      setNotes(existingTreatment.notes || '');
+      // Parse existing notes - try JSON first, fall back to legacy format
+      if (existingTreatment.notes) {
+        try {
+          const parsed = JSON.parse(existingTreatment.notes);
+          if (Array.isArray(parsed)) {
+            setNoteEntries(parsed);
+          } else {
+            // Legacy: plain text, convert to single entry
+            setNoteEntries([{
+              id: Date.now(),
+              text: existingTreatment.notes,
+              timestamp: existingTreatment.created_date || new Date().toISOString(),
+              type: 'typed'
+            }]);
+          }
+        } catch {
+          // Legacy: plain text, convert to single entry
+          setNoteEntries([{
+            id: Date.now(),
+            text: existingTreatment.notes,
+            timestamp: existingTreatment.created_date || new Date().toISOString(),
+            type: 'typed'
+          }]);
+        }
+      }
       setSelectedTypes(existingTreatment.treatment_types || []);
       setFollowUpDate(existingTreatment.follow_up_date || '');
       setPhotoUrls(existingTreatment.photo_urls || []);
     }
   }, [existingTreatment]);
+
+  // Compute serialized notes for saving
+  const serializedNotes = useMemo(() => {
+    if (noteEntries.length === 0) return '';
+    return JSON.stringify(noteEntries);
+  }, [noteEntries]);
 
   // Cleanup effect when component unmounts or navigates away
   useEffect(() => {
@@ -201,14 +236,80 @@ export default function TreatmentEntry() {
     [existingTreatment]
   );
 
-  const handleNotesChange = (e) => {
-    const newNotes = e.target.value;
-    setNotes(newNotes);
+  // Add a new typed note entry
+  const addTypedNote = () => {
+    if (!currentNote.trim()) return;
+    
+    const newEntry = {
+      id: Date.now(),
+      text: currentNote.trim(),
+      timestamp: new Date().toISOString(),
+      type: 'typed'
+    };
+    
+    const newEntries = [...noteEntries, newEntry];
+    setNoteEntries(newEntries);
+    setCurrentNote('');
+    
     autoSave({
-      notes: newNotes,
+      notes: JSON.stringify(newEntries),
       treatment_types: selectedTypes,
       follow_up_date: followUpDate,
       photo_urls: photoUrls,
+    });
+    
+    toast.success('Note added', { duration: 1500 });
+  };
+
+  // Add a voice transcription entry
+  const addVoiceNote = (transcribedText) => {
+    const newEntry = {
+      id: Date.now(),
+      text: transcribedText,
+      timestamp: new Date().toISOString(),
+      type: 'voice'
+    };
+    
+    const newEntries = [...noteEntries, newEntry];
+    setNoteEntries(newEntries);
+    
+    autoSave({
+      notes: JSON.stringify(newEntries),
+      treatment_types: selectedTypes,
+      follow_up_date: followUpDate,
+      photo_urls: photoUrls,
+    });
+  };
+
+  // Delete a note entry
+  const deleteNoteEntry = (id) => {
+    const newEntries = noteEntries.filter(entry => entry.id !== id);
+    setNoteEntries(newEntries);
+    
+    autoSave({
+      notes: newEntries.length > 0 ? JSON.stringify(newEntries) : '',
+      treatment_types: selectedTypes,
+      follow_up_date: followUpDate,
+      photo_urls: photoUrls,
+    });
+    
+    toast.success('Note deleted', { duration: 1500 });
+  };
+
+  // Format timestamp for display
+  const formatTimestamp = (isoString) => {
+    const date = new Date(isoString);
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
+    
+    if (isToday) {
+      return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'short',
+      hour: '2-digit', 
+      minute: '2-digit' 
     });
   };
 
@@ -218,7 +319,7 @@ export default function TreatmentEntry() {
       : [...selectedTypes, type];
     setSelectedTypes(newTypes);
     autoSave({
-      notes,
+      notes: serializedNotes,
       treatment_types: newTypes,
       follow_up_date: followUpDate,
       photo_urls: photoUrls,
@@ -236,7 +337,7 @@ export default function TreatmentEntry() {
     setUploading(false);
 
     autoSave({
-      notes,
+      notes: serializedNotes,
       treatment_types: selectedTypes,
       follow_up_date: followUpDate,
       photo_urls: newPhotos,
@@ -247,7 +348,7 @@ export default function TreatmentEntry() {
     const newPhotos = photoUrls.filter((_, i) => i !== index);
     setPhotoUrls(newPhotos);
     autoSave({
-      notes,
+      notes: serializedNotes,
       treatment_types: selectedTypes,
       follow_up_date: followUpDate,
       photo_urls: newPhotos,
@@ -361,18 +462,11 @@ export default function TreatmentEntry() {
             return;
           }
 
-          const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
-          setNotes(newNotes);
+          // Add as a timestamped voice note entry
+          addVoiceNote(transcribedText);
 
           // Show success feedback
-          toast.success('Voice note transcribed successfully!', { duration: 2000 });
-
-          autoSave({
-            notes: newNotes,
-            treatment_types: selectedTypes,
-            follow_up_date: followUpDate,
-            photo_urls: photoUrls,
-          });
+          toast.success('Voice note added!', { duration: 2000 });
         } catch (error) {
           console.error('[Frontend] Transcription exception:', error);
           console.error('[Frontend] Error details:', {
@@ -414,7 +508,7 @@ export default function TreatmentEntry() {
 
   const handleFinish = async () => {
     await saveMutation.mutateAsync({
-      notes,
+      notes: serializedNotes,
       treatment_types: selectedTypes,
       follow_up_date: followUpDate,
       photo_urls: photoUrls,
@@ -573,12 +667,65 @@ export default function TreatmentEntry() {
             )}
           </div>
 
-          <Textarea
-            value={notes}
-            onChange={handleNotesChange}
-            placeholder="What did you observe? What treatment was given?"
-            className="min-h-[150px] rounded-xl border-stone-200 text-base"
-          />
+          {/* Existing Note Entries */}
+          {noteEntries.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {noteEntries.map((entry) => (
+                <div 
+                  key={entry.id}
+                  className={`p-3 rounded-xl border-2 ${
+                    entry.type === 'voice' 
+                      ? 'bg-blue-50 border-blue-200' 
+                      : 'bg-stone-50 border-stone-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 text-xs text-stone-500">
+                      {entry.type === 'voice' ? (
+                        <Mic size={12} className="text-blue-500" />
+                      ) : (
+                        <Keyboard size={12} className="text-stone-400" />
+                      )}
+                      <span className="font-medium">
+                        {entry.type === 'voice' ? 'Voice' : 'Typed'}
+                      </span>
+                      <span>•</span>
+                      <span>{formatTimestamp(entry.timestamp)}</span>
+                    </div>
+                    <button
+                      onClick={() => deleteNoteEntry(entry.id)}
+                      className="p-1 text-stone-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <p className="text-sm text-stone-700 whitespace-pre-wrap">{entry.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add New Note Input */}
+          <div className="space-y-2">
+            <Textarea
+              value={currentNote}
+              onChange={(e) => setCurrentNote(e.target.value)}
+              placeholder="Type your observation here..."
+              className="min-h-[80px] rounded-xl border-stone-200 text-base"
+            />
+            <button
+              onClick={addTypedNote}
+              disabled={!currentNote.trim()}
+              className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl font-medium transition-all ${
+                currentNote.trim()
+                  ? 'bg-stone-800 text-white hover:bg-stone-900 active:scale-[0.98]'
+                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
+              }`}
+            >
+              <Plus size={18} />
+              Add Note
+            </button>
+          </div>
         </div>
 
         {/* Photos */}
@@ -690,7 +837,7 @@ export default function TreatmentEntry() {
         <Button 
           onClick={handleFinish}
           disabled={saveMutation.isPending}
-          className="w-full max-w-4xl mx-auto bg-emerald-600 hover:bg-emerald-700 rounded-xl h-16 text-lg shadow-lg"
+          className="w-full max-w-4xl mx-auto bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold shadow-lg"
         >
           {saveMutation.isPending ? (
             <Loader2 size={20} className="animate-spin mr-2" />

@@ -225,7 +225,7 @@ EquiPhysio
           <Button 
             onClick={handleSendEmail}
             disabled={sending || !client?.email}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-14 text-lg"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
           >
             {sending ? (
               <Loader2 size={20} className="animate-spin mr-2" />

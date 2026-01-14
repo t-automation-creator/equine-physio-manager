@@ -191,12 +191,9 @@ export default function Home() {
                                 key={horse.id}
                                 to={createPageUrl(`TreatmentEntry?appointmentId=${appt.id}&horseId=${horse.id}`)}
                               >
-                                <Button className="w-full h-20 bg-emerald-600 hover:bg-emerald-700 rounded-2xl flex flex-col items-center justify-center gap-1 py-4">
-                                  <div className="flex items-center gap-2">
-                                    <Play size={22} className="fill-white" />
-                                    <span className="text-lg font-bold">Start Treatment</span>
-                                  </div>
-                                  <span className="text-sm font-medium opacity-90">{horse.name}</span>
+                                <Button className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center justify-center gap-2">
+                                  <Play size={18} className="fill-white" />
+                                  <span className="font-semibold">Start: {horse.name}</span>
                                 </Button>
                               </Link>
                             );
@@ -204,8 +201,8 @@ export default function Home() {
 
                           {treatmentsComplete && !invoice && (
                             <Link to={createPageUrl(`CreateInvoice?appointmentId=${appt.id}`)}>
-                              <Button className="w-full h-20 bg-stone-800 hover:bg-stone-900 rounded-2xl flex items-center justify-center gap-3 text-lg font-bold">
-                                <FileText size={22} />
+                              <Button className="w-full h-12 bg-stone-800 hover:bg-stone-900 rounded-xl flex items-center justify-center gap-2 font-semibold">
+                                <FileText size={18} />
                                 Create Invoice
                               </Button>
                             </Link>
@@ -213,8 +210,8 @@ export default function Home() {
 
                           {invoice && (
                             <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
-                              <Button variant="outline" className="w-full h-16 rounded-2xl border-2 flex items-center justify-center gap-3 text-lg font-semibold">
-                                <FileText size={20} />
+                              <Button variant="outline" className="w-full h-10 rounded-xl border-2 flex items-center justify-center gap-2 font-medium">
+                                <FileText size={16} />
                                 View Invoice
                               </Button>
                             </Link>

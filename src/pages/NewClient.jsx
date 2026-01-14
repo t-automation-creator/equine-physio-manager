@@ -83,7 +83,7 @@ export default function NewClient() {
         <Button 
           onClick={handleSubmit}
           disabled={!name || createMutation.isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-14 text-lg"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
         >
           {createMutation.isPending ? (
             <Loader2 size={20} className="animate-spin mr-2" />

@@ -207,7 +207,7 @@ export default function AppointmentDetail() {
       <div className="space-y-3">
         {allTreatmentsComplete && !invoice && (
           <Link to={createPageUrl(`CreateInvoice?appointmentId=${appointmentId}`)}>
-            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-14 text-lg">
+            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold">
               <FileText size={20} className="mr-2" />
               Create Invoice
             </Button>
@@ -218,9 +218,9 @@ export default function AppointmentDetail() {
           <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
             <Button 
               variant="outline" 
-              className="w-full rounded-xl h-14 text-lg border-2"
+              className="w-full rounded-xl h-10 border-2 font-medium"
             >
-              <FileText size={20} className="mr-2" />
+              <FileText size={16} className="mr-2" />
               View Invoice
               <StatusBadge status={invoice.status} />
             </Button>
