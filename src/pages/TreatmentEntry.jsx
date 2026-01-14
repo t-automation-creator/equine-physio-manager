@@ -231,8 +231,8 @@ export default function TreatmentEntry() {
 
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: 'audio/webm' });
-      const file = new File([blob], 'voice-note.webm', { type: 'audio/webm' });
+      const blob = new Blob(chunks, { type: 'audio/wav' });
+      const file = new File([blob], 'voice-note.wav', { type: 'audio/wav' });
       
       stream.getTracks().forEach(track => track.stop());
       
