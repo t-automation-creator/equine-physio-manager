@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '../utils';
@@ -10,19 +10,23 @@ import {
   Loader2,
   FileText,
   Copy,
-  Check
+  Check,
+  Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
+import InvoiceTemplate from '../components/InvoiceTemplate';
 
 export default function InvoiceDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const invoiceId = urlParams.get('id');
   const queryClient = useQueryClient();
+  const invoiceRef = useRef(null);
 
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ['invoice', invoiceId],
@@ -40,6 +44,20 @@ export default function InvoiceDetail() {
       return clients[0];
     },
     enabled: !!invoice?.client_id,
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', { entity: 'Settings', query: {} });
+      return response.data.data?.[0];
+    },
+    enabled: !!user,
   });
 
   const updateMutation = useMutation({
@@ -62,7 +80,7 @@ export default function InvoiceDetail() {
     const emailBody = `
 Dear ${client.name},
 
-Please find below your invoice from EquiPhysio.
+Please find below your invoice from Annie McAndrew Vet Physio.
 
 Invoice Number: ${invoice.invoice_number}
 Date: ${format(new Date(invoice.created_date), 'MMMM d, yyyy')}
@@ -73,17 +91,24 @@ ${itemsList}
 
 Total Amount: £${invoice.total_amount.toFixed(2)}
 
+Payment Details:
+Account Name: ${settings?.bank_account_name || 'Annie McAndrew Ltd'}
+Sort Code: ${settings?.bank_sort_code || '60-83-71'}
+Account No: ${settings?.bank_account_number || '58786706'}
+
 ${invoice.notes ? `Notes: ${invoice.notes}` : ''}
+
+Payment due on receipt of invoice.
 
 Thank you for your business.
 
 Best regards,
-EquiPhysio
+Annie McAndrew Vet Physio
     `.trim();
 
     await base44.integrations.Core.SendEmail({
       to: client.email,
-      subject: `Invoice ${invoice.invoice_number} - EquiPhysio`,
+      subject: `Invoice ${invoice.invoice_number} - Annie McAndrew Vet Physio`,
       body: emailBody,
     });
 
@@ -105,6 +130,13 @@ EquiPhysio
     });
   };
 
+  const handlePrint = () => {
+    setShowPrintPreview(true);
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -115,6 +147,35 @@ EquiPhysio
 
   if (!invoice) {
     return <div>Invoice not found</div>;
+  }
+
+  // Print preview mode
+  if (showPrintPreview) {
+    return (
+      <div className="print:block">
+        <div className="print:hidden fixed top-4 right-4 z-50 flex gap-2">
+          <Button 
+            onClick={() => window.print()}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            <Printer size={18} className="mr-2" />
+            Print
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setShowPrintPreview(false)}
+          >
+            Back
+          </Button>
+        </div>
+        <InvoiceTemplate 
+          ref={invoiceRef}
+          invoice={invoice} 
+          client={client}
+          settings={settings}
+        />
+      </div>
+    );
   }
 
   return (
@@ -221,6 +282,16 @@ EquiPhysio
 
       {/* Actions */}
       <div className="space-y-3">
+        {/* Print/View Invoice Button - Always visible */}
+        <Button 
+          onClick={handlePrint}
+          variant="outline"
+          className="w-full rounded-xl h-12 border-2 border-stone-300 hover:bg-stone-50"
+        >
+          <Printer size={20} className="mr-2" />
+          View / Print Invoice
+        </Button>
+
         {invoice.status === 'draft' && (
           <Button 
             onClick={handleSendEmail}
