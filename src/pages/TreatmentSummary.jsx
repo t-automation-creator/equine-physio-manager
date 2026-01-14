@@ -42,16 +42,26 @@ export default function TreatmentSummary() {
     }
   };
 
-  // Format timestamp for display
+  // Format timestamp for display - always show date and time
   const formatTimestamp = (isoString) => {
     if (!isoString) return '';
     const date = new Date(isoString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    
+    if (date.toDateString() === today.toDateString()) {
+      return `Today at ${timeStr}`;
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday at ${timeStr}`;
+    }
     return date.toLocaleDateString('en-GB', { 
       day: 'numeric', 
       month: 'short',
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+      year: 'numeric'
+    }) + ` at ${timeStr}`;
   };
 
   const { data: treatment, isLoading } = useQuery({

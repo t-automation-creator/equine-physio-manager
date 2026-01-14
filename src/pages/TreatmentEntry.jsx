@@ -28,6 +28,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import PageHeader from '../components/ui/PageHeader';
 
 const TREATMENT_TYPES = [
@@ -62,6 +72,8 @@ export default function TreatmentEntry() {
   const [transcribing, setTranscribing] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioMimeType, setAudioMimeType] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState(null);
 
   const { data: horse } = useQuery({
     queryKey: ['horse', horseId],
@@ -281,9 +293,17 @@ export default function TreatmentEntry() {
     });
   };
 
-  // Delete a note entry
-  const deleteNoteEntry = (id) => {
-    const newEntries = noteEntries.filter(entry => entry.id !== id);
+  // Request to delete a note entry (opens confirmation dialog)
+  const requestDeleteNote = (id) => {
+    setNoteToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  // Actually delete the note entry after confirmation
+  const confirmDeleteNote = () => {
+    if (!noteToDelete) return;
+    
+    const newEntries = noteEntries.filter(entry => entry.id !== noteToDelete);
     setNoteEntries(newEntries);
     
     autoSave({
@@ -294,23 +314,29 @@ export default function TreatmentEntry() {
     });
     
     toast.success('Note deleted', { duration: 1500 });
+    setDeleteConfirmOpen(false);
+    setNoteToDelete(null);
   };
 
-  // Format timestamp for display
+  // Format timestamp for display - always show date and time
   const formatTimestamp = (isoString) => {
     const date = new Date(isoString);
     const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
     
-    if (isToday) {
-      return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    
+    if (date.toDateString() === today.toDateString()) {
+      return `Today at ${timeStr}`;
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday at ${timeStr}`;
     }
     return date.toLocaleDateString('en-GB', { 
       day: 'numeric', 
       month: 'short',
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+      year: 'numeric'
+    }) + ` at ${timeStr}`;
   };
 
   const handleTypeToggle = (type) => {
@@ -693,7 +719,7 @@ export default function TreatmentEntry() {
                       <span>{formatTimestamp(entry.timestamp)}</span>
                     </div>
                     <button
-                      onClick={() => deleteNoteEntry(entry.id)}
+                      onClick={() => requestDeleteNote(entry.id)}
                       className="p-1 text-stone-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={14} />
@@ -847,6 +873,32 @@ export default function TreatmentEntry() {
           Finish Treatment
         </Button>
       </div>
+
+      {/* Delete Note Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this note? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setNoteToDelete(null)}
+              className="rounded-xl"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteNote}
+              className="bg-red-600 hover:bg-red-700 rounded-xl"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

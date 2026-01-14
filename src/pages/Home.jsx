@@ -112,6 +112,28 @@ export default function Home() {
     return horseIds?.every(horseId => getHorseStatus(apptId, horseId) === 'completed');
   };
 
+  // Show full-page loading state until initial data is ready
+  // This prevents the flash of "No appointments today" before data loads
+  if (loadingAppts) {
+    return (
+      <div className="pb-6">
+        <div className="mb-6">
+          <div className="h-9 w-24 bg-stone-200 rounded-lg animate-pulse mb-2" />
+          <div className="h-6 w-40 bg-stone-100 rounded-lg animate-pulse" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border-2 border-stone-100 p-6 animate-pulse">
+              <div className="h-6 w-32 bg-stone-200 rounded mb-3" />
+              <div className="h-4 w-24 bg-stone-100 rounded mb-4" />
+              <div className="h-12 w-full bg-stone-100 rounded-xl" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-6">
       <div className="mb-6">
@@ -121,13 +143,7 @@ export default function Home() {
 
       {showAddressPrompt && <AddressPrompt user={user} onDismiss={() => setShowAddressPrompt(false)} />}
 
-      {loadingAppts ? (
-        <div className="space-y-4">
-          {[1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl h-48 animate-pulse" />
-          ))}
-        </div>
-      ) : appointments.length === 0 ? (
+      {appointments.length === 0 ? (
         <div className="text-center py-16 text-stone-500">
           <p className="text-lg">No appointments today</p>
         </div>
