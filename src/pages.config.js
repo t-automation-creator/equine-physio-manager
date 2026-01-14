@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import HorseDetail from './pages/HorseDetail';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Invoices from './pages/Invoices';
+import Layout from './pages/Layout';
 import NewAppointment from './pages/NewAppointment';
 import NewClient from './pages/NewClient';
 import NewHorse from './pages/NewHorse';
@@ -20,6 +21,7 @@ import TreatmentEntry from './pages/TreatmentEntry';
 import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
+import index from './pages/index';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +38,7 @@ export const PAGES = {
     "HorseDetail": HorseDetail,
     "InvoiceDetail": InvoiceDetail,
     "Invoices": Invoices,
+    "Layout": Layout,
     "NewAppointment": NewAppointment,
     "NewClient": NewClient,
     "NewHorse": NewHorse,
@@ -46,6 +49,7 @@ export const PAGES = {
     "TreatmentSummary": TreatmentSummary,
     "YardDetail": YardDetail,
     "Yards": Yards,
+    "index": index,
 }
 
 export const pagesConfig = {

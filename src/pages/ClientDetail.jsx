@@ -20,39 +20,43 @@ export default function ClientDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('id');
 
-  const { data: client, isLoading, isError, error } = useQuery({
+  console.log('ClientDetail mounted, clientId:', clientId);
+
+  const { data: client, isLoading: clientLoading, isError, error } = useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
+      console.log('Fetching client...');
       const clients = await base44.entities.Client.filter({ id: clientId });
+      console.log('Client fetched:', clients[0]);
       return clients[0];
     },
     enabled: !!clientId,
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: horses = [] } = useQuery({
+  const { data: horses = [], isLoading: horsesLoading, isError: horsesError } = useQuery({
     queryKey: ['horses', clientId],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: { owner_id: clientId } });
-      return data || [];
+      console.log('Fetching horses for client...');
+      const allHorses = await base44.entities.Horse.filter({ owner_id: clientId });
+      console.log('Horses fetched:', allHorses);
+      return allHorses || [];
     },
-    enabled: !!clientId && !!user?.email,
+    enabled: !!clientId,
   });
 
   const { data: yards = [] } = useQuery({
     queryKey: ['yards'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
-      return data || [];
+      console.log('Fetching yards...');
+      const allYards = await base44.entities.Yard.list();
+      console.log('Yards fetched:', allYards);
+      return allYards || [];
     },
-    enabled: !!user?.email,
   });
 
   const getYard = (id) => yards.find(y => y.id === id);
+
+  const isLoading = clientLoading || horsesLoading;
 
   if (isLoading) {
     return (
@@ -75,7 +79,19 @@ export default function ClientDetail() {
     );
   }
 
-  if (!client) {
+  if (!clientId) {
+    return (
+      <div className="pb-6">
+        <PageHeader title="Client" backTo="Clients" />
+        <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center">
+          <h3 className="font-semibold text-stone-800 mb-2">No client ID provided</h3>
+          <p className="text-stone-600 text-sm">Please select a client from the Clients page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!client && !isLoading) {
     return (
       <div className="pb-6">
         <PageHeader title="Client" backTo="Clients" />
@@ -139,7 +155,11 @@ export default function ClientDetail() {
           </Link>
         </div>
 
-        {horses.length === 0 ? (
+        {horsesError ? (
+          <div className="text-center py-8 text-red-500">
+            <p>Error loading horses</p>
+          </div>
+        ) : horses.length === 0 ? (
           <div className="text-center py-8 text-stone-500">
             <p>No horses registered yet</p>
           </div>
