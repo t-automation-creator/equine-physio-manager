@@ -231,30 +231,36 @@ export default function TreatmentEntry() {
 
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: 'audio/wav' });
-      const file = new File([blob], 'voice-note.wav', { type: 'audio/wav' });
+      const blob = new Blob(chunks, { type: 'audio/mp4' });
+      const file = new File([blob], 'voice-note.m4a', { type: 'audio/mp4' });
       
       stream.getTracks().forEach(track => track.stop());
       
       setTranscribing(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: 'Transcribe this audio recording. Only return the transcribed text, nothing else.',
-        file_urls: [file_url]
-      });
-      
-      const transcribedText = result || '';
-      const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
-      setNotes(newNotes);
-      setTranscribing(false);
-      
-      autoSave({
-        notes: newNotes,
-        treatment_types: selectedTypes,
-        follow_up_date: followUpDate,
-        photo_urls: photoUrls,
-      });
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: 'Transcribe this audio recording. Only return the transcribed text, nothing else.',
+          file_urls: [file_url]
+        });
+        
+        const transcribedText = result || '';
+        const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
+        setNotes(newNotes);
+        
+        autoSave({
+          notes: newNotes,
+          treatment_types: selectedTypes,
+          follow_up_date: followUpDate,
+          photo_urls: photoUrls,
+        });
+      } catch (error) {
+        console.error('Voice recording error:', error);
+        alert('Voice recording is not currently supported. Please type your notes instead.');
+      } finally {
+        setTranscribing(false);
+      }
     };
 
     recorder.start();
