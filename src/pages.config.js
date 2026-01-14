@@ -10,7 +10,6 @@ import Home from './pages/Home';
 import HorseDetail from './pages/HorseDetail';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Invoices from './pages/Invoices';
-import Layout from './pages/Layout';
 import NewAppointment from './pages/NewAppointment';
 import NewClient from './pages/NewClient';
 import NewHorse from './pages/NewHorse';
@@ -38,7 +37,6 @@ export const PAGES = {
     "HorseDetail": HorseDetail,
     "InvoiceDetail": InvoiceDetail,
     "Invoices": Invoices,
-    "Layout": Layout,
     "NewAppointment": NewAppointment,
     "NewClient": NewClient,
     "NewHorse": NewHorse,
