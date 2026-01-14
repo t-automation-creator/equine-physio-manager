@@ -116,6 +116,33 @@ export default function TreatmentEntry() {
     }
   }, [existingTreatment]);
 
+  // Cleanup effect when component unmounts or navigates away
+  useEffect(() => {
+    return () => {
+      console.log('[Cleanup] TreatmentEntry unmounting, cleaning up...');
+
+      // Stop recording if active
+      if (mediaRecorder && recording) {
+        console.log('[Cleanup] Stopping active recording');
+        try {
+          mediaRecorder.stop();
+          mediaRecorder.stream?.getTracks().forEach(track => {
+            track.stop();
+            console.log('[Cleanup] Stopped media track');
+          });
+        } catch (error) {
+          console.error('[Cleanup] Error stopping recorder:', error);
+        }
+      }
+
+      // Reset transcribing state
+      if (transcribing) {
+        console.log('[Cleanup] Resetting transcribing state');
+        setTranscribing(false);
+      }
+    };
+  }, [mediaRecorder, recording, transcribing]);
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (existingTreatment) {
