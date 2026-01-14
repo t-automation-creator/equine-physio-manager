@@ -260,7 +260,11 @@ export default function TreatmentEntry() {
         }
       }, 1000);
 
-      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
       recorder.onstop = async () => {
         clearInterval(timer);
         setRecordingDuration(0);
@@ -362,7 +366,9 @@ export default function TreatmentEntry() {
         }
       };
 
-      recorder.start();
+      // iOS Safari fix: Use timeslice parameter to chunk audio into 1-second pieces
+      // This fixes Safari's mp4 encoding issue where Whisper only transcribes first few words
+      recorder.start(1000);
       setMediaRecorder(recorder);
       setRecording(true);
     } catch (error) {
@@ -470,51 +476,76 @@ export default function TreatmentEntry() {
       <div className="space-y-4">
         {/* Notes - Primary Input */}
         <div className="bg-white rounded-2xl border-2 border-stone-200 p-5">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             <Label className="text-lg font-semibold text-stone-800">
               Notes
             </Label>
-            <button
-              onClick={recording ? stopRecording : startRecording}
-              disabled={transcribing}
-              className={`
-                flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all min-h-[44px]
-                ${recording
-                  ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
-                  : transcribing
-                  ? 'bg-stone-300 text-stone-600 cursor-not-allowed'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                }
-              `}
-            >
-              {transcribing ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  <span className="text-base">Transcribing (may take 30-60s)...</span>
-                </>
-              ) : recording ? (
-                <>
-                  <Square size={20} fill="currentColor" />
-                  <span className="text-base">
-                    Stop ({Math.floor(recordingDuration / 60)}:{String(recordingDuration % 60).padStart(2, '0')})
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Mic size={20} />
-                  <span className="text-base">Voice Note</span>
-                </>
-              )}
-            </button>
           </div>
 
-          {/* Recording indicator */}
-          {recording && (
-            <div className="mb-3 flex items-center gap-2 text-sm text-red-600">
-              <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
-              <span className="font-medium">Recording... (max 3 min)</span>
-            </div>
-          )}
+          {/* Voice Recording Button - Redesigned for better UX */}
+          <div className="mb-4">
+            {transcribing ? (
+              // Transcribing State
+              <div className="flex items-center justify-center gap-3 p-4 bg-stone-100 rounded-xl border-2 border-stone-200">
+                <Loader2 size={24} className="animate-spin text-emerald-600" />
+                <div className="text-center">
+                  <p className="font-semibold text-stone-800">Transcribing...</p>
+                  <p className="text-sm text-stone-500">This may take a moment</p>
+                </div>
+              </div>
+            ) : recording ? (
+              // Recording State - Large, prominent stop button
+              <button
+                onClick={stopRecording}
+                className="w-full flex flex-col items-center gap-3 p-5 bg-red-50 rounded-xl border-2 border-red-200 transition-all active:scale-[0.98]"
+              >
+                {/* Pulsing recording indicator */}
+                <div className="relative">
+                  <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                    <Square size={28} fill="white" className="text-white" />
+                  </div>
+                  {/* Pulsing ring animation */}
+                  <div className="absolute inset-0 w-16 h-16 bg-red-400 rounded-full animate-ping opacity-30" />
+                </div>
+                
+                {/* Timer display */}
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-red-600 font-mono">
+                    {Math.floor(recordingDuration / 60)}:{String(recordingDuration % 60).padStart(2, '0')}
+                  </p>
+                  <p className="text-sm font-medium text-red-500 mt-1">
+                    Tap to stop recording
+                  </p>
+                </div>
+                
+                {/* Max duration indicator */}
+                <div className="w-full bg-red-200 rounded-full h-1.5 mt-2">
+                  <div 
+                    className="bg-red-600 h-1.5 rounded-full transition-all duration-1000"
+                    style={{ width: `${(recordingDuration / MAX_RECORDING_SECONDS) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-red-400">
+                  Max {MAX_RECORDING_SECONDS / 60} minutes
+                </p>
+              </button>
+            ) : (
+              // Idle State - Ready to record
+              <button
+                onClick={startRecording}
+                className="w-full flex items-center justify-center gap-3 p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl border-2 border-emerald-200 hover:border-emerald-300 transition-all active:scale-[0.98]"
+              >
+                <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center shadow-md">
+                  <Mic size={24} className="text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-emerald-800">Record Voice Note</p>
+                  <p className="text-sm text-emerald-600">Tap to start recording</p>
+                </div>
+              </button>
+            )}
+          </div>
+
           <Textarea
             value={notes}
             onChange={handleNotesChange}
