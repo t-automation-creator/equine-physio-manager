@@ -8,7 +8,8 @@ import {
   ChevronRight, 
   Plus,
   Edit,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
@@ -17,7 +18,7 @@ export default function YardDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const yardId = urlParams.get('id');
 
-  const { data: yard, isLoading } = useQuery({
+  const { data: yard, isLoading: yardLoading, isError: yardError, error: yardErrorObj } = useQuery({
     queryKey: ['yard', yardId],
     queryFn: async () => {
       const yards = await base44.entities.Yard.filter({ id: yardId });
@@ -26,30 +27,26 @@ export default function YardDetail() {
     enabled: !!yardId,
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: horses = [] } = useQuery({
+  const { data: horses = [], isLoading: horsesLoading, isError: horsesError } = useQuery({
     queryKey: ['horses', yardId],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Horse', query: { yard_id: yardId } });
-      return data;
+      const allHorses = await base44.entities.Horse.filter({ yard_id: yardId });
+      return allHorses || [];
     },
-    enabled: !!yardId && !!user,
+    enabled: !!yardId,
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
-      const { data } = await base44.functions.invoke('getMyData', { entity: 'Client', query: {} });
-      return data;
+      const allClients = await base44.entities.Client.list();
+      return allClients || [];
     },
-    enabled: !!user,
   });
 
   const getClient = (id) => clients.find(c => c.id === id);
+
+  const isLoading = yardLoading || horsesLoading || clientsLoading;
 
   if (isLoading) {
     return (
@@ -59,8 +56,41 @@ export default function YardDetail() {
     );
   }
 
-  if (!yard) {
-    return <div>Yard not found</div>;
+  if (yardError) {
+    return (
+      <div className="pb-6">
+        <PageHeader title="Yard" backTo="Yards" />
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+          <h3 className="font-semibold text-red-800 mb-2">Failed to load yard</h3>
+          <p className="text-red-600 text-sm">{yardErrorObj?.message || 'An unexpected error occurred'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!yardId) {
+    return (
+      <div className="pb-6">
+        <PageHeader title="Yard" backTo="Yards" />
+        <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center">
+          <h3 className="font-semibold text-stone-800 mb-2">No yard ID provided</h3>
+          <p className="text-stone-600 text-sm">Please select a yard from the Yards page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!yard && !yardLoading) {
+    return (
+      <div className="pb-6">
+        <PageHeader title="Yard" backTo="Yards" />
+        <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center">
+          <h3 className="font-semibold text-stone-800 mb-2">Yard not found</h3>
+          <p className="text-stone-600 text-sm">The yard you're looking for doesn't exist or has been deleted.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -109,7 +139,11 @@ export default function YardDetail() {
           </Link>
         </div>
 
-        {horses.length === 0 ? (
+        {horsesError ? (
+          <div className="text-center py-8 text-red-500">
+            <p>Error loading horses</p>
+          </div>
+        ) : horses.length === 0 ? (
           <div className="text-center py-8 text-stone-500">
             <p>No horses at this yard yet</p>
           </div>
