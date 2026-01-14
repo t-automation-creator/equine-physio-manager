@@ -3,16 +3,19 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { format, parseISO, isToday, isFuture, isPast } from 'date-fns';
-import { Plus, Calendar, Filter } from 'lucide-react';
+import { format, parseISO, isToday, isFuture, isPast, isSameDay } from 'date-fns';
+import { Plus, Calendar, List, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import AppointmentCard from '../components/appointments/AppointmentCard';
+import CalendarView from '../components/CalendarView';
 
 export default function Appointments() {
   const [filter, setFilter] = useState('upcoming');
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -56,6 +59,13 @@ export default function Appointments() {
 
   const filteredAppointments = appointments.filter((appt) => {
     const date = parseISO(appt.date);
+    
+    // If a date is selected in calendar view, filter by that date
+    if (selectedDate && viewMode === 'calendar') {
+      return isSameDay(date, selectedDate);
+    }
+    
+    // Otherwise use the filter tabs
     if (filter === 'today') return isToday(date);
     if (filter === 'upcoming') return isFuture(date) || isToday(date);
     if (filter === 'past') return isPast(date) && !isToday(date);
@@ -73,6 +83,22 @@ export default function Appointments() {
     filter === 'past' ? b.localeCompare(a) : a.localeCompare(b)
   );
 
+  // Handle day click in calendar
+  const handleDayClick = (date) => {
+    setSelectedDate(date);
+  };
+
+  // Clear selected date when switching views or filters
+  const handleViewChange = (mode) => {
+    setViewMode(mode);
+    setSelectedDate(null);
+  };
+
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setSelectedDate(null);
+  };
+
   return (
     <div className="pb-6">
       <PageHeader 
@@ -87,7 +113,36 @@ export default function Appointments() {
         }
       />
 
-      <Tabs value={filter} onValueChange={setFilter} className="mb-6">
+      {/* View Toggle */}
+      <div className="flex gap-2 mb-4">
+        <Button
+          variant={viewMode === 'list' ? 'default' : 'outline'}
+          onClick={() => handleViewChange('list')}
+          className={`flex-1 rounded-xl h-12 ${
+            viewMode === 'list' 
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <List size={20} className="mr-2" />
+          List
+        </Button>
+        <Button
+          variant={viewMode === 'calendar' ? 'default' : 'outline'}
+          onClick={() => handleViewChange('calendar')}
+          className={`flex-1 rounded-xl h-12 ${
+            viewMode === 'calendar' 
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <CalendarDays size={20} className="mr-2" />
+          Calendar
+        </Button>
+      </div>
+
+      {/* Filter Tabs */}
+      <Tabs value={filter} onValueChange={handleFilterChange} className="mb-6">
         <TabsList className="w-full bg-stone-100 p-1 rounded-xl">
           <TabsTrigger 
             value="today" 
@@ -110,6 +165,30 @@ export default function Appointments() {
         </TabsList>
       </Tabs>
 
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <div className="mb-6">
+          <CalendarView 
+            appointments={appointments}
+            onDayClick={handleDayClick}
+          />
+          {selectedDate && (
+            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+              <p className="text-sm text-emerald-800 font-medium">
+                Showing appointments for {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+              </p>
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="text-xs text-emerald-600 hover:text-emerald-700 underline mt-1"
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Appointments List */}
       {loadingAppts ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -119,12 +198,17 @@ export default function Appointments() {
       ) : filteredAppointments.length === 0 ? (
         <EmptyState
           icon={Calendar}
-          title={`No ${filter} appointments`}
-          description={filter === 'upcoming' 
-            ? "You have no upcoming appointments scheduled."
-            : filter === 'today'
-            ? "No appointments for today."
-            : "No past appointments found."
+          title={selectedDate 
+            ? `No appointments on ${format(selectedDate, 'MMMM d')}`
+            : `No ${filter} appointments`
+          }
+          description={selectedDate
+            ? "There are no appointments scheduled for this date."
+            : filter === 'upcoming' 
+              ? "You have no upcoming appointments scheduled."
+              : filter === 'today'
+              ? "No appointments for today."
+              : "No past appointments found."
           }
           action={
             <Link to={createPageUrl('NewAppointment')}>
