@@ -52,8 +52,8 @@ export default function TreatmentEntry() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [recognition, setRecognition] = useState(null);
-  const [liveTranscript, setLiveTranscript] = useState('');
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [transcribing, setTranscribing] = useState(false);
 
   const { data: horse } = useQuery({
     queryKey: ['horse', horseId],
@@ -224,77 +224,75 @@ export default function TreatmentEntry() {
     });
   };
 
-  // Web Speech API for real-time audio transcription
-  // Supported in Chrome/Edge (desktop + mobile) and Safari (iOS 14.5+)
-  // Cache bust: 2026-01-14T15:30:00Z
+  // OpenAI Whisper API for reliable audio transcription
+  // Works on all browsers and devices
   const startRecording = async () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert('Speech recognition is not supported in this browser. Please use Chrome or Safari.');
-      return;
-    }
-
     try {
-      const recognitionInstance = new SpeechRecognition();
-      recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = 'en-GB';
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
 
-      let finalTranscript = '';
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        stream.getTracks().forEach(track => track.stop());
 
-      recognitionInstance.onresult = (event) => {
-        let interimTranscript = '';
+        setTranscribing(true);
+        try {
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          await new Promise((resolve) => {
+            reader.onloadend = resolve;
+          });
+          const base64Audio = reader.result.split(',')[1];
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-            // Auto-append final results to notes
-            const newNotes = notes ? `${notes}\n\n${finalTranscript.trim()}` : finalTranscript.trim();
-            setNotes(newNotes);
-            autoSave({
-              notes: newNotes,
-              treatment_types: selectedTypes,
-              follow_up_date: followUpDate,
-              photo_urls: photoUrls,
-            });
-            finalTranscript = ''; // Reset after saving
-          } else {
-            interimTranscript += transcript;
+          // Call serverless function to transcribe via OpenAI Whisper
+          const response = await fetch('/api/transcribe-audio', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ audioBlob: base64Audio }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Transcription failed');
           }
+
+          const { text } = await response.json();
+          const transcribedText = text || '';
+          const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
+          setNotes(newNotes);
+
+          autoSave({
+            notes: newNotes,
+            treatment_types: selectedTypes,
+            follow_up_date: followUpDate,
+            photo_urls: photoUrls,
+          });
+        } catch (error) {
+          console.error('Transcription error:', error);
+          alert('Failed to transcribe audio. Please try again.');
+        } finally {
+          setTranscribing(false);
         }
-
-        // Update live preview with interim results
-        setLiveTranscript(interimTranscript);
       };
 
-      recognitionInstance.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setRecording(false);
-        setLiveTranscript('');
-        if (event.error === 'not-allowed') {
-          alert('Microphone access denied. Please enable microphone permissions.');
-        }
-      };
-
-      recognitionInstance.onend = () => {
-        setRecording(false);
-        setLiveTranscript('');
-      };
-
-      recognitionInstance.start();
-      setRecognition(recognitionInstance);
+      recorder.start();
+      setMediaRecorder(recorder);
       setRecording(true);
     } catch (error) {
-      console.error('Failed to start speech recognition:', error);
-      alert('Failed to start voice recording. Please try again.');
+      console.error('Microphone access error:', error);
+      alert('Microphone access denied. Please enable microphone permissions.');
     }
   };
 
   const stopRecording = () => {
-    if (recognition) {
-      recognition.stop();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      setRecording(false);
+      setMediaRecorder(null);
     }
   };
 
@@ -395,15 +393,23 @@ export default function TreatmentEntry() {
             </Label>
             <button
               onClick={recording ? stopRecording : startRecording}
+              disabled={transcribing}
               className={`
                 flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all min-h-[44px]
                 ${recording
                   ? 'bg-red-600 text-white hover:bg-red-700'
+                  : transcribing
+                  ? 'bg-stone-300 text-stone-600 cursor-not-allowed'
                   : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }
               `}
             >
-              {recording ? (
+              {transcribing ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  <span className="text-base">Transcribing...</span>
+                </>
+              ) : recording ? (
                 <>
                   <Square size={20} fill="currentColor" />
                   <span className="text-base">Stop Recording</span>
@@ -411,18 +417,10 @@ export default function TreatmentEntry() {
               ) : (
                 <>
                   <Mic size={20} />
-                  <span className="text-base">Start Voice Note</span>
+                  <span className="text-base">Voice Note</span>
                 </>
               )}
             </button>
-
-            {/* Live Transcript Overlay */}
-            {recording && liveTranscript && (
-              <div className="fixed bottom-32 left-4 right-4 bg-emerald-50 border-2 border-emerald-600 rounded-2xl p-4 shadow-lg z-10 animate-in fade-in slide-in-from-bottom-4">
-                <p className="text-xs font-medium text-emerald-700 mb-2">Live Transcript:</p>
-                <p className="text-sm text-stone-800">{liveTranscript}</p>
-              </div>
-            )}
           </div>
           <Textarea
             value={notes}
