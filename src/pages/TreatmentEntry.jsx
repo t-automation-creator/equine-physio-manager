@@ -54,6 +54,8 @@ export default function TreatmentEntry() {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [transcribing, setTranscribing] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [audioMimeType, setAudioMimeType] = useState('');
 
   const { data: horse } = useQuery({
     queryKey: ['horse', horseId],
@@ -225,17 +227,51 @@ export default function TreatmentEntry() {
   };
 
   // OpenAI Whisper API for reliable audio transcription
-  // Works on all browsers and devices
+  // Max recording: 3 minutes to manage API costs and file sizes
+  const MAX_RECORDING_SECONDS = 180; // 3 minutes
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+
+      // Detect supported MIME type (browser-specific)
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : 'audio/ogg';
+
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks = [];
+
+      setAudioMimeType(mimeType);
+      setRecordingDuration(0);
+
+      // Timer to track and limit recording duration
+      const startTime = Date.now();
+      const timer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        setRecordingDuration(elapsed);
+
+        // Auto-stop at max duration
+        if (elapsed >= MAX_RECORDING_SECONDS) {
+          stopRecording();
+        }
+      }, 1000);
 
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = async () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
+        clearInterval(timer);
+        setRecordingDuration(0);
+
+        const blob = new Blob(chunks, { type: mimeType });
         stream.getTracks().forEach(track => track.stop());
+
+        // Check file size (warn if > 5MB)
+        const sizeMB = blob.size / (1024 * 1024);
+        if (sizeMB > 5) {
+          alert(`Recording is large (${sizeMB.toFixed(1)}MB). Transcription may take longer.`);
+        }
 
         setTranscribing(true);
         try {
@@ -248,14 +284,25 @@ export default function TreatmentEntry() {
           const base64Audio = reader.result.split(',')[1];
 
           // Call Base44 serverless function to transcribe via OpenAI Whisper
-          const result = await base44.functions.transcribeAudio({ audioBlob: base64Audio });
+          const result = await base44.functions.transcribeAudio({
+            audioBlob: base64Audio,
+            mimeType: mimeType
+          });
 
           if (!result || result.error) {
-            throw new Error(result?.error || 'Transcription failed');
+            // Show specific error from API
+            const errorMsg = result?.error || 'Transcription failed';
+            throw new Error(errorMsg);
           }
 
           const { text } = result;
           const transcribedText = text || '';
+
+          if (!transcribedText.trim()) {
+            alert('No speech detected. Please speak clearly and try again.');
+            return;
+          }
+
           const newNotes = notes ? `${notes}\n\n${transcribedText}` : transcribedText;
           setNotes(newNotes);
 
@@ -267,7 +314,7 @@ export default function TreatmentEntry() {
           });
         } catch (error) {
           console.error('Transcription error:', error);
-          alert('Failed to transcribe audio. Please try again.');
+          alert(`Transcription failed: ${error.message}`);
         } finally {
           setTranscribing(false);
         }
@@ -278,7 +325,7 @@ export default function TreatmentEntry() {
       setRecording(true);
     } catch (error) {
       console.error('Microphone access error:', error);
-      alert('Microphone access denied. Please enable microphone permissions.');
+      alert('Microphone access denied. Please enable microphone permissions in your browser settings.');
     }
   };
 
@@ -391,7 +438,7 @@ export default function TreatmentEntry() {
               className={`
                 flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all min-h-[44px]
                 ${recording
-                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
                   : transcribing
                   ? 'bg-stone-300 text-stone-600 cursor-not-allowed'
                   : 'bg-emerald-600 text-white hover:bg-emerald-700'
@@ -406,7 +453,9 @@ export default function TreatmentEntry() {
               ) : recording ? (
                 <>
                   <Square size={20} fill="currentColor" />
-                  <span className="text-base">Stop Recording</span>
+                  <span className="text-base">
+                    Stop ({Math.floor(recordingDuration / 60)}:{String(recordingDuration % 60).padStart(2, '0')})
+                  </span>
                 </>
               ) : (
                 <>
@@ -416,6 +465,14 @@ export default function TreatmentEntry() {
               )}
             </button>
           </div>
+
+          {/* Recording indicator */}
+          {recording && (
+            <div className="mb-3 flex items-center gap-2 text-sm text-red-600">
+              <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+              <span className="font-medium">Recording... (max 3 min)</span>
+            </div>
+          )}
           <Textarea
             value={notes}
             onChange={handleNotesChange}

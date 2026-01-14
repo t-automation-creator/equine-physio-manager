@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { audioBlob } = await req.json();
+    const { audioBlob, mimeType = 'audio/webm' } = await req.json();
 
     if (!audioBlob) {
       return Response.json({ error: 'No audio data provided' }, { status: 400 });
@@ -18,9 +18,14 @@ Deno.serve(async (req) => {
     // Convert base64 to binary
     const audioBuffer = Uint8Array.from(atob(audioBlob), c => c.charCodeAt(0));
 
+    // Determine file extension from MIME type
+    const fileExt = mimeType.includes('mp4') ? 'mp4'
+      : mimeType.includes('ogg') ? 'ogg'
+      : 'webm';
+
     // Create form data for OpenAI Whisper API
     const formData = new FormData();
-    formData.append('file', new Blob([audioBuffer], { type: 'audio/webm' }), 'audio.webm');
+    formData.append('file', new Blob([audioBuffer], { type: mimeType }), `audio.${fileExt}`);
     formData.append('model', 'whisper-1');
     formData.append('language', 'en');
 
@@ -41,16 +46,29 @@ Deno.serve(async (req) => {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
-      return Response.json({ error: 'Transcription failed' }, { status: 500 });
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+
+      // Parse OpenAI error for specific messages
+      try {
+        const errorJson = JSON.parse(errorText);
+        const errorMsg = errorJson.error?.message || 'Transcription failed';
+        return Response.json({ error: errorMsg }, { status: response.status });
+      } catch {
+        return Response.json({ error: 'Transcription failed. Please try again.' }, { status: 500 });
+      }
     }
 
     const result = await response.json();
 
+    // Validate response has text
+    if (!result.text) {
+      return Response.json({ error: 'No transcription returned' }, { status: 500 });
+    }
+
     return Response.json({ text: result.text });
   } catch (error) {
     console.error('Transcription error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message || 'Unknown error occurred' }, { status: 500 });
   }
 });
