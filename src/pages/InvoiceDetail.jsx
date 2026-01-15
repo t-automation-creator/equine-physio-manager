@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '../utils';
@@ -149,14 +150,26 @@ Annie McAndrew Vet Physio
     return <div>Invoice not found</div>;
   }
 
-  // Print preview mode
+  // Hide app navigation when in print preview mode
+  useEffect(() => {
+    if (showPrintPreview) {
+      document.body.classList.add('invoice-print-mode');
+    } else {
+      document.body.classList.remove('invoice-print-mode');
+    }
+    return () => {
+      document.body.classList.remove('invoice-print-mode');
+    };
+  }, [showPrintPreview]);
+
+  // Print preview mode - render as a full-screen overlay
   if (showPrintPreview) {
-    return (
-      <div className="print:block">
-        <div className="print:hidden fixed top-4 right-4 z-50 flex gap-2">
+    return ReactDOM.createPortal(
+      <div className="fixed inset-0 z-[9999] bg-white overflow-auto">
+        <div className="print:hidden fixed top-4 right-4 z-[10000] flex gap-2">
           <Button 
             onClick={() => window.print()}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-emerald-600 hover:bg-emerald-700 shadow-lg"
           >
             <Printer size={18} className="mr-2" />
             Print
@@ -164,6 +177,7 @@ Annie McAndrew Vet Physio
           <Button 
             variant="outline"
             onClick={() => setShowPrintPreview(false)}
+            className="bg-white shadow-lg"
           >
             Back
           </Button>
@@ -174,7 +188,8 @@ Annie McAndrew Vet Physio
           client={client}
           settings={settings}
         />
-      </div>
+      </div>,
+      document.body
     );
   }
 

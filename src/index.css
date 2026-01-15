@@ -87,6 +87,18 @@
   }
 }
 
+/* Invoice print mode - hide app navigation */
+body.invoice-print-mode header,
+body.invoice-print-mode aside,
+body.invoice-print-mode nav {
+  display: none !important;
+}
+
+body.invoice-print-mode main {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 /* Print styles for invoice template */
 @media print {
   body {
@@ -95,12 +107,21 @@
     background: white !important;
   }
   
+  /* Hide all app navigation when printing */
+  header,
+  aside,
+  nav,
   .print\:hidden {
     display: none !important;
   }
   
   .print\:block {
     display: block !important;
+  }
+  
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
   }
   
   @page {
