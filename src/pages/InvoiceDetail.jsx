@@ -138,18 +138,6 @@ Annie McAndrew Vet Physio
     }, 100);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    );
-  }
-
-  if (!invoice) {
-    return <div>Invoice not found</div>;
-  }
-
   // Hide app navigation when in print preview mode
   useEffect(() => {
     if (showPrintPreview) {
@@ -161,6 +149,18 @@ Annie McAndrew Vet Physio
       document.body.classList.remove('invoice-print-mode');
     };
   }, [showPrintPreview]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  if (!invoice) {
+    return <div>Invoice not found</div>;
+  }
 
   // Print preview mode - render as a full-screen overlay
   if (showPrintPreview) {
