@@ -135,20 +135,18 @@ export default function CalendarView({ appointments = [], onDayClick }) {
                 {format(day, 'd')}
               </span>
 
-              {/* Appointment Badge */}
+              {/* Appointment Indicator */}
               {hasAppointments && (
-                <span className={`
-                  absolute bottom-1 left-1/2 transform -translate-x-1/2
-                  min-w-[20px] h-5 px-1.5 rounded-full
-                  flex items-center justify-center
-                  text-[10px] sm:text-xs font-semibold
-                  ${isTodayDate 
-                    ? 'bg-cvs-red text-white' 
-                    : 'bg-cvs-blue/10 text-cvs-blue'
-                  }
-                `}>
-                  {dayAppointments.length}
-                </span>
+                <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                  {dayAppointments.slice(0, 3).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1 h-1 rounded-full ${
+                        isTodayDate ? 'bg-cvs-red' : 'bg-cvs-blue'
+                      }`}
+                    />
+                  ))}
+                </div>
               )}
             </button>
           );
