@@ -12,9 +12,16 @@ import {
   FileText,
   Copy,
   Check,
-  Printer
+  Printer,
+  Edit,
+  Save,
+  X as XIcon,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
 import InvoiceTemplate from '../components/InvoiceTemplate';
@@ -28,6 +35,8 @@ export default function InvoiceDetail() {
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedLineItems, setEditedLineItems] = useState([]);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ['invoice', invoiceId],
@@ -78,8 +87,47 @@ export default function InvoiceDetail() {
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.Invoice.update(invoiceId, data),
-    onSuccess: () => queryClient.invalidateQueries(['invoice', invoiceId]),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['invoice', invoiceId]);
+      setIsEditing(false);
+    },
   });
+
+  const updateLineItem = (index, field, value) => {
+    const newItems = [...editedLineItems];
+    newItems[index][field] = value;
+    if (field === 'quantity' || field === 'unit_price') {
+      newItems[index].total = newItems[index].quantity * newItems[index].unit_price;
+    }
+    setEditedLineItems(newItems);
+  };
+
+  const addLineItem = () => {
+    setEditedLineItems([...editedLineItems, { description: '', quantity: 1, unit_price: 0, total: 0 }]);
+  };
+
+  const removeLineItem = (index) => {
+    setEditedLineItems(editedLineItems.filter((_, i) => i !== index));
+  };
+
+  const editedTotal = editedLineItems.reduce((sum, item) => sum + (item.total || 0), 0);
+
+  const handleStartEdit = () => {
+    setEditedLineItems(JSON.parse(JSON.stringify(invoice.line_items || [])));
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedLineItems([]);
+  };
+
+  const handleSaveEdit = () => {
+    updateMutation.mutate({
+      line_items: editedLineItems,
+      total_amount: editedTotal,
+    });
+  };
 
   const handleSendEmail = async () => {
     if (!client?.email) {
@@ -280,25 +328,99 @@ Annie McAndrew Vet Physio
 
         {/* Line Items */}
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="font-bold text-gray-900 mb-3">Items</h4>
-          <div className="space-y-3">
-            {invoice.line_items?.map((item, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between py-2"
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-bold text-gray-900">Items</h4>
+            {!isEditing && invoice.status === 'draft' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleStartEdit}
               >
-                <div className="flex-1">
-                  <p className="font-medium text-gray-700">{item.description}</p>
-                  <p className="text-sm text-gray-500">
-                    {item.quantity} × £{item.unit_price?.toFixed(2)}
+                <Edit size={16} />
+                Edit
+              </Button>
+            )}
+          </div>
+
+          {isEditing ? (
+            <div className="space-y-4">
+              {editedLineItems.map((item, index) => (
+                <div key={index} className="p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <Input
+                      value={item.description}
+                      onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                      placeholder="Description"
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => removeLineItem(index)}
+                      className="text-cvs-red hover:text-cvs-red hover:bg-red-50"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <Label className="text-xs text-gray-500">Qty</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateLineItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500">Price (£)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.unit_price}
+                        onChange={(e) => updateLineItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500">Total</Label>
+                      <div className="h-10 flex items-center text-gray-900 font-semibold">
+                        £{item.total.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={addLineItem}
+                className="w-full border-dashed"
+                size="sm"
+              >
+                <Plus size={16} />
+                Add Line Item
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {invoice.line_items?.map((item, index) => (
+                <div 
+                  key={index}
+                  className="flex items-center justify-between py-2"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-700">{item.description}</p>
+                    <p className="text-sm text-gray-500">
+                      {item.quantity} × £{item.unit_price?.toFixed(2)}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-gray-900">
+                    £{item.total?.toFixed(2)}
                   </p>
                 </div>
-                <p className="font-semibold text-gray-900">
-                  £{item.total?.toFixed(2)}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Total */}
@@ -306,10 +428,36 @@ Annie McAndrew Vet Physio
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold text-gray-900">Total</span>
             <span className="text-2xl font-bold text-cvs-green">
-              £{invoice.total_amount?.toFixed(2)}
+              £{isEditing ? editedTotal.toFixed(2) : invoice.total_amount?.toFixed(2)}
             </span>
           </div>
         </div>
+
+        {/* Edit Actions */}
+        {isEditing && (
+          <div className="border-t border-gray-100 mt-4 pt-4 flex gap-3">
+            <Button
+              onClick={handleSaveEdit}
+              disabled={updateMutation.isPending || editedLineItems.length === 0}
+              className="flex-1"
+            >
+              {updateMutation.isPending ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Save size={18} />
+              )}
+              Save Changes
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCancelEdit}
+              disabled={updateMutation.isPending}
+            >
+              <XIcon size={18} />
+              Cancel
+            </Button>
+          </div>
+        )}
 
         {/* Notes */}
         {invoice.notes && (
