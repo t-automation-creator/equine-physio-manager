@@ -431,7 +431,16 @@ export default function TreatmentEntry() {
 
           const audioBlob = await base64Promise;
 
-          // Call custom transcribeAudio function instead of Base44 integration
+          /**
+           * ⚠️ CRITICAL - DO NOT MODIFY THIS TRANSCRIPTION CODE ⚠️
+           *
+           * This uses a CUSTOM Deno function (functions/transcribeAudio.ts) that calls
+           * OpenAI Whisper directly. DO NOT replace with base44.integrations.Core.Transcribe
+           * as that integration is not available and will return 404.
+           *
+           * Correct: base44.functions.invoke('transcribeAudio', {...})
+           * Wrong:   base44.integrations.Core.Transcribe({...})
+           */
           const response = await base44.functions.invoke('transcribeAudio', {
             audioBlob,
             mimeType: actualMimeType,
