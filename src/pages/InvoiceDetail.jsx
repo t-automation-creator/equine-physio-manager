@@ -61,15 +61,18 @@ export default function InvoiceDetail() {
     enabled: !!user,
   });
 
-  // Handle body overflow when print preview is open
+  // Handle body overflow and hide app when print preview is open
   useEffect(() => {
     if (showPrintPreview) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('print-preview-active');
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('print-preview-active');
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('print-preview-active');
     };
   }, [showPrintPreview]);
 
@@ -171,7 +174,9 @@ Annie McAndrew Vet Physio
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 99999,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999,
         background: 'white',
         overflow: 'auto'
       }}>

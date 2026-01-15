@@ -87,17 +87,22 @@
   }
 }
 
+/* Hide app root when print preview is active */
+body.print-preview-active > #root {
+  display: none !important;
+}
+
 /* Print styles for invoice template */
 @media print {
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  
+
   .print\:hidden {
     display: none !important;
   }
-  
+
   @page {
     size: A4;
     margin: 0;
