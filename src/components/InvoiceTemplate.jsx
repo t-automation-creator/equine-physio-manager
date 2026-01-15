@@ -34,7 +34,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-10">
         {/* Invoice Title and Client Info */}
-        <div className="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-0 mb-10 pb-8 border-b-2 border-black">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-0 mb-10 pb-8 border-b-2 border-[#0066cc]">
           <div>
             <h2 className="text-3xl md:text-5xl font-bold text-black mb-6 tracking-tight">INVOICE</h2>
             <div className="space-y-2 text-sm md:text-base text-black">
@@ -59,7 +59,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
         <div className="mb-10 md:mb-12">
           <table className="w-full">
             <thead>
-              <tr className="bg-black text-white">
+              <tr className="bg-[#0066cc] text-white">
                 <th className="text-left py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-sm tracking-wider">DESCRIPTION</th>
                 <th className="text-center py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-sm tracking-wider">PRICE</th>
                 <th className="text-center py-3 md:py-4 px-3 md:px-4 font-bold text-xs md:text-sm tracking-wider">QTY</th>
@@ -80,7 +80,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
         </div>
 
         {/* Payment Details and Total */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 md:gap-0 pt-6 border-t-2 border-black">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 md:gap-0 pt-6 border-t-2 border-[#0066cc]">
           <div className="space-y-6">
             <div>
               <h3 className="font-bold text-black mb-3 text-sm md:text-base tracking-wider">PAYMENT DETAILS</h3>
@@ -106,7 +106,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
             </div>
           </div>
 
-          <div className="bg-black text-white px-6 md:px-8 py-4 md:py-6 w-full md:w-auto">
+          <div className="bg-[#0066cc] text-white px-6 md:px-8 py-4 md:py-6 w-full md:w-auto">
             <div className="flex flex-col gap-2">
               <span className="font-bold text-xs md:text-sm tracking-widest">TOTAL DUE</span>
               <span className="text-3xl md:text-4xl font-bold">£{invoice?.total_amount?.toFixed(0) || '0'}</span>
@@ -116,7 +116,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
       </div>
 
       {/* Footer */}
-      <div className="bg-black text-white px-4 md:px-10 py-4 md:py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 text-xs md:text-sm mt-auto">
+      <div className="bg-[#0066cc] text-white px-4 md:px-10 py-4 md:py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 text-xs md:text-sm mt-auto">
         <div>
           <p className="font-bold text-sm md:text-base mb-1">{businessInfo.name}</p>
           <p className="text-white/90 text-[10px] md:text-xs leading-relaxed">{businessInfo.address}</p>
