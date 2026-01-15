@@ -417,30 +417,36 @@ export default function TreatmentEntry() {
         try {
           const actualMimeType = recorder.mimeType || selectedMimeType || 'audio/webm';
           const blob = new Blob(chunks, { type: actualMimeType });
-          
-          let extension = 'webm';
-          if (actualMimeType.includes('mp4')) extension = 'mp4';
-          else if (actualMimeType.includes('ogg')) extension = 'ogg';
-          else if (actualMimeType.includes('wav')) extension = 'wav';
-          
-          const file = new File([blob], `recording.${extension}`, { type: actualMimeType });
-          
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          
-          const { text } = await base44.integrations.Core.Transcribe({
-            audio_url: file_url,
+
+          // Convert blob to base64 for the custom transcribeAudio function
+          const reader = new FileReader();
+          const base64Promise = new Promise((resolve, reject) => {
+            reader.onloadend = () => {
+              const base64 = reader.result.split(',')[1]; // Remove data:audio/webm;base64, prefix
+              resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
           });
-          
-          if (text && text.trim()) {
-            addVoiceNote(text.trim());
+
+          const audioBlob = await base64Promise;
+
+          // Call custom transcribeAudio function instead of Base44 integration
+          const result = await base44.functions.transcribeAudio({
+            audioBlob,
+            mimeType: actualMimeType,
+          });
+
+          if (result.text && result.text.trim()) {
+            addVoiceNote(result.text.trim());
             toast.success('Voice note added!', { duration: 2000 });
           } else {
             toast.error('No speech detected. Please try again.', { duration: 3000 });
           }
         } catch (error) {
           console.error('Transcription error:', error);
-          const errorMsg = error.message || 'Unknown error';
-          if (error.response?.status === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
+          const errorMsg = error.message || error.error || 'Unknown error';
+          if (error.status === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
             toast.error('Rate limit reached. Please wait 1 minute and try again.', { duration: 5000 });
           } else {
             toast.error(`Transcription failed: ${errorMsg}`, { duration: 4000 });
