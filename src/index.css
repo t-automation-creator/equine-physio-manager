@@ -99,6 +99,16 @@ body.print-preview-active > #root {
     print-color-adjust: exact !important;
   }
 
+  /* Hide app root completely when printing */
+  #root {
+    display: none !important;
+  }
+
+  /* Only show elements marked as printable */
+  body.print-preview-active {
+    overflow: visible !important;
+  }
+
   .print\:hidden {
     display: none !important;
   }
