@@ -114,7 +114,7 @@ export default function Home() {
 
   // Show full-page loading state until initial data is ready
   // This prevents the flash of "No appointments today" before data loads
-  if (loadingAppts) {
+  if (loadingAppts || loadingUser) {
     return (
       <div className="pb-6">
         <div className="mb-6">
