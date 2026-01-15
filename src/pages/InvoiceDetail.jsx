@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '../utils';
@@ -138,18 +137,6 @@ Annie McAndrew Vet Physio
     }, 100);
   };
 
-  // Hide app navigation when in print preview mode
-  useEffect(() => {
-    if (showPrintPreview) {
-      document.body.classList.add('invoice-print-mode');
-    } else {
-      document.body.classList.remove('invoice-print-mode');
-    }
-    return () => {
-      document.body.classList.remove('invoice-print-mode');
-    };
-  }, [showPrintPreview]);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -162,11 +149,11 @@ Annie McAndrew Vet Physio
     return <div>Invoice not found</div>;
   }
 
-  // Print preview mode - render as a full-screen overlay
+  // Print preview mode - simple full page view
   if (showPrintPreview) {
-    return ReactDOM.createPortal(
-      <div className="fixed inset-0 z-[9999] bg-white overflow-auto invoice-preview-overlay">
-        <div className="print:hidden fixed top-4 right-4 z-[10000] flex gap-2">
+    return (
+      <div className="bg-white">
+        <div className="print:hidden fixed top-4 right-4 z-50 flex gap-2">
           <Button 
             onClick={() => window.print()}
             className="bg-emerald-600 hover:bg-emerald-700 shadow-lg"
@@ -188,8 +175,7 @@ Annie McAndrew Vet Physio
           client={client}
           settings={settings}
         />
-      </div>,
-      document.body
+      </div>
     );
   }
 

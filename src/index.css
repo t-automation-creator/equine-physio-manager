@@ -87,90 +87,15 @@
   }
 }
 
-/* Invoice print mode - hide app navigation and scrollbars */
-body.invoice-print-mode {
-  overflow: hidden !important;
-}
-
-body.invoice-print-mode header,
-body.invoice-print-mode aside,
-body.invoice-print-mode nav {
-  display: none !important;
-}
-
-body.invoice-print-mode main {
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-}
-
-body.invoice-print-mode #root {
-  overflow: hidden !important;
-}
-
-/* Hide scrollbars in invoice preview overlay */
-.invoice-preview-overlay {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.invoice-preview-overlay::-webkit-scrollbar {
-  display: none;
-}
-
 /* Print styles for invoice template */
 @media print {
-  * {
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-  }
-  
-  html, body {
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background: white !important;
   }
   
-  /* Hide all app navigation when printing */
-  header,
-  aside,
-  nav,
   .print\:hidden {
     display: none !important;
-  }
-  
-  .print\:block {
-    display: block !important;
-  }
-  
-  main, #root, .invoice-preview-overlay {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    position: static !important;
-  }
-  
-  /* Invoice template specific print styles */
-  .invoice-preview-overlay > div {
-    min-height: 100vh !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  
-  /* Restore padding only for invoice content area */
-  .invoice-preview-overlay > div > div:first-child {
-    padding: 2rem !important;
-  }
-  
-  /* Footer padding */
-  .invoice-preview-overlay > div > div:last-child {
-    padding: 1rem 2rem !important;
   }
   
   @page {

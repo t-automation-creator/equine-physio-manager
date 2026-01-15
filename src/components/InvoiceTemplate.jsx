@@ -25,11 +25,11 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
   return (
     <div 
       ref={ref}
-      className="bg-[#f5f0eb] min-h-screen w-full flex flex-col"
+      className="bg-[#f5f0eb] w-[210mm] min-h-[297mm] mx-auto relative flex flex-col"
       style={{ fontFamily: 'Arial, sans-serif' }}
     >
       {/* Main Content */}
-      <div className="flex-1 px-8 md:px-12 py-8">
+      <div className="flex-1 p-10">
         {/* Invoice Title and Client Info */}
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -72,18 +72,12 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
                   <td className="py-4 text-right text-stone-700">£{item.total?.toFixed(0) || item.total}</td>
                 </tr>
               ))}
-              {/* Empty rows for spacing if needed */}
-              {(!invoice?.line_items || invoice.line_items.length < 3) && (
-                <tr>
-                  <td colSpan="4" className="py-8"></td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
 
         {/* Payment Details and Total */}
-        <div className="flex justify-between items-end mt-auto">
+        <div className="flex justify-between items-end">
           <div>
             <h3 className="font-bold text-stone-800 mb-3">PAYMENT DETAILS</h3>
             <div className="space-y-1 text-stone-700 text-sm">
@@ -115,7 +109,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
       </div>
 
       {/* Footer */}
-      <div className="bg-[#2d2926] text-white px-8 md:px-12 py-4 flex justify-between items-center text-sm mt-auto">
+      <div className="bg-[#2d2926] text-white px-10 py-4 flex justify-between items-center text-sm">
         <div>
           <p className="font-medium">{businessInfo.name}</p>
           <p className="text-white/80 text-xs">{businessInfo.address}</p>
