@@ -141,7 +141,7 @@ export default function Home() {
         <p className="text-stone-500 text-lg">{format(new Date(), 'EEEE, MMMM d')}</p>
       </div>
 
-      {showAddressPrompt && <AddressPrompt user={user} onDismiss={() => setShowAddressPrompt(false)} />}
+      {showAddressPrompt && !user?.home_address && <AddressPrompt user={user} onDismiss={() => setShowAddressPrompt(false)} />}
 
       {appointments.length === 0 ? (
         <div className="text-center py-16 text-stone-500">
