@@ -12,7 +12,7 @@ export default function Home() {
   const [showAddressPrompt, setShowAddressPrompt] = React.useState(true);
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
   });

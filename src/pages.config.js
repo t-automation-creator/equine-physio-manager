@@ -16,11 +16,11 @@ import NewHorse from './pages/NewHorse';
 import NewYard from './pages/NewYard';
 import Payments from './pages/Payments';
 import Profile from './pages/Profile';
+import TreatmentEntry from './pages/TreatmentEntry';
 import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
-import TreatmentEntry from './pages/TreatmentEntry';
 import __Layout from './Layout.jsx';
 
 
@@ -43,11 +43,11 @@ export const PAGES = {
     "NewYard": NewYard,
     "Payments": Payments,
     "Profile": Profile,
+    "TreatmentEntry": TreatmentEntry,
     "TreatmentSummary": TreatmentSummary,
     "YardDetail": YardDetail,
     "Yards": Yards,
     "index": index,
-    "TreatmentEntry": TreatmentEntry,
 }
 
 export const pagesConfig = {
