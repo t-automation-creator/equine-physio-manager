@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
 import { MobileHeader, MobileMenu, DesktopSidebar, BottomNav } from '@/components/layout';
 
-export default function Layout() {
+export default function Layout({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -27,7 +26,7 @@ export default function Layout() {
         }}
       >
         <div className="px-4 py-6 lg:p-8">
-          <Outlet />
+          {children}
         </div>
       </main>
 
