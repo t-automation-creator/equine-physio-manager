@@ -1,56 +1,27 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format, parseISO, isToday, isFuture, isPast, isSameDay } from 'date-fns';
 import { Plus, Calendar, List, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import AppointmentCard from '../components/appointments/AppointmentCard';
 import CalendarView from '../components/CalendarView';
+import { useUser, useClients, useHorses, useYards, useAppointments, useTreatments } from '@/hooks/useData';
 
 export default function Appointments() {
   const [filter, setFilter] = useState('upcoming');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: appointments = [], isLoading: loadingAppts } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.filter({ created_by: user.email }, '-date'),
-    enabled: !!user,
-  });
-
-  const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.filter({ created_by: user.email }),
-    enabled: !!user,
-  });
-
-  const { data: yards = [] } = useQuery({
-    queryKey: ['yards'],
-    queryFn: () => base44.entities.Yard.filter({ created_by: user.email }),
-    enabled: !!user,
-  });
-
-  const { data: horses = [] } = useQuery({
-    queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.filter({ created_by: user.email }),
-    enabled: !!user,
-  });
-
-  const { data: treatments = [] } = useQuery({
-    queryKey: ['treatments'],
-    queryFn: () => base44.entities.Treatment.filter({ created_by: user.email }),
-    enabled: !!user,
-  });
+  // Use optimized shared hooks - data is cached globally across pages
+  const { data: user } = useUser();
+  const { data: appointments = [], isLoading: loadingAppts } = useAppointments();
+  const { data: clients = [] } = useClients();
+  const { data: yards = [] } = useYards();
+  const { data: horses = [] } = useHorses();
+  const { data: treatments = [] } = useTreatments();
 
   const getClient = (id) => clients.find(c => c.id === id);
   const getYard = (id) => yards.find(y => y.id === id);

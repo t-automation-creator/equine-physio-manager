@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Plus, Search, Users, ChevronRight, Phone, Mail, AlertCircle } from 'lucide-react';
@@ -8,26 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
+import { useClients, useHorses } from '@/hooks/useData';
 
 export default function Clients() {
   const [search, setSearch] = useState('');
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const { data: clients = [], isLoading, isError, error } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.filter({ created_by: user?.email }, 'name'),
-    enabled: !!user?.email,
-  });
-
-  const { data: horses = [] } = useQuery({
-    queryKey: ['horses'],
-    queryFn: () => base44.entities.Horse.filter({ created_by: user?.email }),
-    enabled: !!user?.email,
-  });
+  // Use optimized shared hooks - data is cached globally across pages
+  const { data: clients = [], isLoading, isError, error } = useClients();
+  const { data: horses = [] } = useHorses();
 
   const getHorseCount = (clientId) => horses.filter(h => h.owner_id === clientId).length;
 
