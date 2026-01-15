@@ -432,10 +432,11 @@ export default function TreatmentEntry() {
           const audioBlob = await base64Promise;
 
           // Call custom transcribeAudio function instead of Base44 integration
-          const result = await base44.functions.transcribeAudio({
+          const response = await base44.functions.invoke('transcribeAudio', {
             audioBlob,
             mimeType: actualMimeType,
           });
+          const result = response.data;
 
           if (result.text && result.text.trim()) {
             addVoiceNote(result.text.trim());
