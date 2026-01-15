@@ -23,10 +23,16 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
     : invoiceDate;
 
   return (
-    <div 
+    <div
       ref={ref}
-      className="bg-[#f5f0eb] w-[210mm] min-h-[297mm] mx-auto relative flex flex-col"
-      style={{ fontFamily: 'Arial, sans-serif' }}
+      className="bg-[#f5f0eb] w-[210mm] h-[297mm] mx-auto relative flex flex-col"
+      style={{
+        fontFamily: 'Arial, sans-serif',
+        maxWidth: '210mm',
+        maxHeight: '297mm',
+        minHeight: '297mm',
+        pageBreakAfter: 'always'
+      }}
     >
       {/* Main Content */}
       <div className="flex-1 p-10">
