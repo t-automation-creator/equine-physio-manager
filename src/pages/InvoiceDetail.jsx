@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '../utils';
@@ -59,6 +60,18 @@ export default function InvoiceDetail() {
     },
     enabled: !!user,
   });
+
+  // Handle body overflow when print preview is open
+  useEffect(() => {
+    if (showPrintPreview) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showPrintPreview]);
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.Invoice.update(invoiceId, data),
@@ -149,19 +162,35 @@ Annie McAndrew Vet Physio
     return <div>Invoice not found</div>;
   }
 
-  // Print preview mode - simple full page view
+  // Print preview mode - render as portal to completely cover screen
   if (showPrintPreview) {
-    return (
-      <div className="bg-white">
-        <div className="print:hidden fixed top-4 right-4 z-50 flex gap-2">
-          <Button 
+    return ReactDOM.createPortal(
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 99999,
+        background: 'white',
+        overflow: 'auto'
+      }}>
+        <div className="print:hidden" style={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          zIndex: 100000,
+          display: 'flex',
+          gap: 8
+        }}>
+          <Button
             onClick={() => window.print()}
             className="bg-emerald-600 hover:bg-emerald-700 shadow-lg"
           >
             <Printer size={18} className="mr-2" />
             Print
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => setShowPrintPreview(false)}
             className="bg-white shadow-lg"
@@ -169,13 +198,14 @@ Annie McAndrew Vet Physio
             Back
           </Button>
         </div>
-        <InvoiceTemplate 
+        <InvoiceTemplate
           ref={invoiceRef}
-          invoice={invoice} 
+          invoice={invoice}
           client={client}
           settings={settings}
         />
-      </div>
+      </div>,
+      document.body
     );
   }
 
