@@ -160,9 +160,7 @@ export default function CalendarView({ appointments = [], onDayClick }) {
           <span className="text-xs sm:text-sm text-gray-600">Today</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-cvs-blue/10 flex items-center justify-center">
-            <span className="text-[8px] font-semibold text-cvs-blue">1</span>
-          </div>
+          <div className="w-1 h-1 rounded-full bg-cvs-blue"></div>
           <span className="text-xs sm:text-sm text-gray-600">Has Appointments</span>
         </div>
       </div>
