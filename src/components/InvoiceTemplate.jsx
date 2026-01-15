@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 import { format } from 'date-fns';
-import invoiceHeaderImg from '../assets/invoice-header.jpg';
 
 const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
   // Default business info - these can be extended in settings later
@@ -26,35 +25,11 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
   return (
     <div 
       ref={ref}
-      className="bg-[#f5f0eb] min-h-[297mm] w-[210mm] mx-auto relative"
+      className="bg-[#f5f0eb] min-h-screen w-full flex flex-col"
       style={{ fontFamily: 'Arial, sans-serif' }}
     >
-      {/* Header Banner */}
-      <div className="relative h-[120px] overflow-hidden">
-        <img 
-          src={invoiceHeaderImg}
-          alt="Annie McAndrew Vet Physio"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
-        <div className="relative flex items-center justify-center h-full">
-          <div className="text-center text-white">
-            <div className="flex items-center justify-center gap-8">
-              <div className="w-16 h-[1px] bg-white/60" />
-              <div>
-                <h1 className="text-3xl tracking-wider" style={{ fontFamily: 'Georgia, serif' }}>
-                  ANNIE McANDREW
-                </h1>
-                <p className="text-sm tracking-[0.3em] mt-1">VET PHYSIO</p>
-              </div>
-              <div className="w-16 h-[1px] bg-white/60" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <div className="px-12 py-8">
+      <div className="flex-1 px-8 md:px-12 py-8">
         {/* Invoice Title and Client Info */}
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -140,7 +115,7 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 bg-[#2d2926] text-white px-12 py-4 flex justify-between items-center text-sm">
+      <div className="bg-[#2d2926] text-white px-8 md:px-12 py-4 flex justify-between items-center text-sm mt-auto">
         <div>
           <p className="font-medium">{businessInfo.name}</p>
           <p className="text-white/80 text-xs">{businessInfo.address}</p>
