@@ -178,7 +178,12 @@ Annie McAndrew Vet Physio
         height: '100vh',
         zIndex: 999999,
         background: 'white',
-        overflow: 'auto'
+        overflow: 'auto',
+        margin: 0,
+        padding: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
         <div className="print:hidden" style={{
           position: 'fixed',

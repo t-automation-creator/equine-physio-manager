@@ -95,13 +95,15 @@ body.print-preview-active > #root {
 /* Print styles for invoice template */
 @media print {
   html, body {
-    width: 210mm;
-    height: 297mm;
-    margin: 0;
-    padding: 0;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    background: white !important;
   }
 
   /* Hide app root completely when printing */
@@ -109,9 +111,9 @@ body.print-preview-active > #root {
     display: none !important;
   }
 
-  /* Only show elements marked as printable */
-  body.print-preview-active {
-    overflow: visible !important;
+  /* Ensure invoice template fills page */
+  body.print-preview-active > div {
+    margin: 0 !important;
   }
 
   .print\:hidden {
@@ -126,5 +128,6 @@ body.print-preview-active > #root {
   /* Force A4 dimensions */
   @page {
     size: 210mm 297mm;
+    margin: 0;
   }
 }
