@@ -87,7 +87,11 @@
   }
 }
 
-/* Invoice print mode - hide app navigation */
+/* Invoice print mode - hide app navigation and scrollbars */
+body.invoice-print-mode {
+  overflow: hidden !important;
+}
+
 body.invoice-print-mode header,
 body.invoice-print-mode aside,
 body.invoice-print-mode nav {
@@ -97,6 +101,21 @@ body.invoice-print-mode nav {
 body.invoice-print-mode main {
   padding: 0 !important;
   margin: 0 !important;
+  overflow: hidden !important;
+}
+
+body.invoice-print-mode #root {
+  overflow: hidden !important;
+}
+
+/* Hide scrollbars in invoice preview overlay */
+.invoice-preview-overlay {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.invoice-preview-overlay::-webkit-scrollbar {
+  display: none;
 }
 
 /* Print styles for invoice template */

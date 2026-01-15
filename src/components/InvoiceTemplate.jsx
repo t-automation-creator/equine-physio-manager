@@ -30,11 +30,11 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
       style={{ fontFamily: 'Arial, sans-serif' }}
     >
       {/* Header Banner */}
-      <div className="relative h-[140px] overflow-hidden">
+      <div className="relative h-[120px] overflow-hidden">
         <img 
           src={invoiceHeaderImg}
           alt="Annie McAndrew Vet Physio"
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
         <div className="relative flex items-center justify-center h-full">

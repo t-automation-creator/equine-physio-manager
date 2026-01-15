@@ -165,7 +165,7 @@ Annie McAndrew Vet Physio
   // Print preview mode - render as a full-screen overlay
   if (showPrintPreview) {
     return ReactDOM.createPortal(
-      <div className="fixed inset-0 z-[9999] bg-white overflow-auto">
+      <div className="fixed inset-0 z-[9999] bg-white overflow-auto invoice-preview-overlay">
         <div className="print:hidden fixed top-4 right-4 z-[10000] flex gap-2">
           <Button 
             onClick={() => window.print()}
