@@ -28,3 +28,8 @@ dist-ssr
 *.sw?
 
 .env
+
+# Temporary files
+tmpclaude-*.cwd
+*.tmp
+*.temp
