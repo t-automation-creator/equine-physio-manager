@@ -189,71 +189,69 @@ export default function CreateInvoice() {
 
       <div className="space-y-6">
         {/* Auto-generated Notice */}
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
-          <p className="text-sm text-blue-800">
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <p className="text-sm text-blue-800 font-medium">
             ✓ Invoice automatically generated from {treatments.length} treatment{treatments.length !== 1 ? 's' : ''} at £{settings?.default_treatment_price || 60} per horse
           </p>
         </div>
 
         {/* Client Info */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <h3 className="font-semibold text-stone-800 mb-3">Invoice For</h3>
-          <p className="text-stone-700 font-medium">{client?.name}</p>
-          {client?.email && <p className="text-stone-500 text-sm">{client.email}</p>}
-          {client?.phone && <p className="text-stone-500 text-sm">{client.phone}</p>}
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <h3 className="font-bold text-gray-900 mb-3">Invoice For</h3>
+          <p className="text-gray-900 font-medium">{client?.name}</p>
+          {client?.email && <p className="text-gray-500 text-sm">{client.email}</p>}
+          {client?.phone && <p className="text-gray-500 text-sm">{client.phone}</p>}
         </div>
 
         {/* Line Items */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-stone-800">Line Items</h3>
-            <span className="text-xs text-stone-500">Edit if needed</span>
+            <h3 className="font-bold text-gray-900">Line Items</h3>
+            <span className="text-xs text-gray-500">Edit if needed</span>
           </div>
           
           <div className="space-y-4">
             {lineItems.map((item, index) => (
-              <div key={index} className="p-4 bg-stone-50 rounded-xl">
+              <div key={index} className="p-4 bg-gray-50 rounded-xl">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <Input
                     value={item.description}
                     onChange={(e) => updateLineItem(index, 'description', e.target.value)}
                     placeholder="Description"
-                    className="flex-1 rounded-lg"
+                    className="flex-1"
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => removeLineItem(index)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="text-cvs-red hover:text-cvs-red hover:bg-red-50"
                   >
                     <Trash2 size={18} />
                   </Button>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-xs text-stone-500">Qty</Label>
+                    <Label className="text-xs text-gray-500">Qty</Label>
                     <Input
                       type="number"
                       min="1"
                       value={item.quantity}
                       onChange={(e) => updateLineItem(index, 'quantity', parseInt(e.target.value) || 0)}
-                      className="rounded-lg"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-stone-500">Price (£)</Label>
+                    <Label className="text-xs text-gray-500">Price (£)</Label>
                     <Input
                       type="number"
                       min="0"
                       step="0.01"
                       value={item.unit_price}
                       onChange={(e) => updateLineItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                      className="rounded-lg"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-stone-500">Total</Label>
-                    <div className="h-10 flex items-center text-stone-700 font-medium">
+                    <Label className="text-xs text-gray-500">Total</Label>
+                    <div className="h-14 flex items-center text-gray-900 font-semibold">
                       £{item.total.toFixed(2)}
                     </div>
                   </div>
@@ -265,49 +263,47 @@ export default function CreateInvoice() {
           <Button
             variant="outline"
             onClick={addLineItem}
-            className="w-full mt-4 rounded-xl border-dashed"
+            className="w-full mt-4 border-dashed"
           >
-            <Plus size={18} className="mr-2" />
+            <Plus size={18} />
             Add Line Item
           </Button>
         </div>
 
         {/* Total */}
-        <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-5">
+        <div className="bg-green-50 rounded-2xl border border-green-200 p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Calculator size={20} className="text-emerald-600" />
-              <span className="font-semibold text-emerald-800">Total Amount</span>
+              <Calculator size={20} className="text-cvs-green" />
+              <span className="font-bold text-gray-900">Total Amount</span>
             </div>
-            <span className="text-2xl font-bold text-emerald-700">
+            <span className="text-2xl font-bold text-cvs-green">
               £{totalAmount.toFixed(2)}
             </span>
           </div>
         </div>
 
         {/* Due Date */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-3 block">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <Label className="text-base font-bold text-gray-900 mb-3 block">
             Due Date
           </Label>
           <Input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="rounded-xl"
           />
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-3 block">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <Label className="text-base font-bold text-gray-900 mb-3 block">
             Notes (Optional)
           </Label>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add any additional notes for the invoice..."
-            className="rounded-xl"
           />
         </div>
 
@@ -315,12 +311,13 @@ export default function CreateInvoice() {
         <Button 
           onClick={handleCreate}
           disabled={createMutation.isPending || lineItems.length === 0}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
+          className="w-full"
+          size="lg"
         >
           {createMutation.isPending ? (
-            <Loader2 size={20} className="animate-spin mr-2" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <FileText size={20} className="mr-2" />
+            <FileText size={20} />
           )}
           Create Invoice
         </Button>

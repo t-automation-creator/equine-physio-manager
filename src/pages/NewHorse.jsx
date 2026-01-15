@@ -100,7 +100,7 @@ export default function NewHorse() {
 
       <div className="space-y-6">
         {/* Photo */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
           <Label className="mb-4 block">Photo</Label>
           
           {photoUrl ? (
@@ -112,7 +112,7 @@ export default function NewHorse() {
               />
               <button
                 onClick={() => setPhotoUrl('')}
-                className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center"
+                className="absolute top-2 right-2 w-8 h-8 bg-cvs-red text-white rounded-full flex items-center justify-center"
               >
                 <X size={16} />
               </button>
@@ -126,16 +126,16 @@ export default function NewHorse() {
                 className="hidden"
               />
               <div className={`
-                flex items-center justify-center gap-2 p-8 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer
-                hover:border-emerald-500 hover:bg-emerald-50 transition-colors
+                flex items-center justify-center gap-2 p-8 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer
+                hover:border-cvs-blue hover:bg-blue-50 transition-colors
                 ${uploading ? 'opacity-50' : ''}
               `}>
                 {uploading ? (
-                  <Loader2 size={24} className="animate-spin text-emerald-600" />
+                  <Loader2 size={24} className="animate-spin text-cvs-blue" />
                 ) : (
-                  <Camera size={24} className="text-stone-400" />
+                  <Camera size={24} className="text-gray-400" />
                 )}
-                <span className="text-stone-600 font-medium">
+                <span className="text-gray-600 font-medium">
                   {uploading ? 'Uploading...' : 'Add Photo'}
                 </span>
               </div>
@@ -144,15 +144,14 @@ export default function NewHorse() {
         </div>
 
         {/* Basic Info */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <div className="space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="space-y-5">
             <div>
               <Label className="mb-2 block">Name *</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Horse name"
-                className="rounded-xl h-12"
               />
             </div>
 
@@ -165,14 +164,13 @@ export default function NewHorse() {
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   placeholder="Age"
-                  className="rounded-xl h-12"
                 />
               </div>
 
               <div>
                 <Label className="mb-2 block">Discipline</Label>
                 <Select value={discipline} onValueChange={setDiscipline}>
-                  <SelectTrigger className="rounded-xl h-12">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -187,12 +185,12 @@ export default function NewHorse() {
         </div>
 
         {/* Owner & Yard */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <div className="space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="space-y-5">
             <div>
               <Label className="mb-2 block">Owner *</Label>
               <Select value={ownerId} onValueChange={setOwnerId}>
-                <SelectTrigger className="rounded-xl h-12">
+                <SelectTrigger>
                   <SelectValue placeholder="Select owner" />
                 </SelectTrigger>
                 <SelectContent>
@@ -208,7 +206,7 @@ export default function NewHorse() {
             <div>
               <Label className="mb-2 block">Yard</Label>
               <Select value={yardId} onValueChange={setYardId}>
-                <SelectTrigger className="rounded-xl h-12">
+                <SelectTrigger>
                   <SelectValue placeholder="Select yard" />
                 </SelectTrigger>
                 <SelectContent>
@@ -224,25 +222,26 @@ export default function NewHorse() {
         </div>
 
         {/* Medical Notes */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
           <Label className="mb-3 block">Medical Notes</Label>
           <Textarea
             value={medicalNotes}
             onChange={(e) => setMedicalNotes(e.target.value)}
             placeholder="Any medical history, conditions, or notes..."
-            className="rounded-xl min-h-[120px]"
+            className="min-h-[120px]"
           />
         </div>
 
         <Button 
           onClick={handleSubmit}
           disabled={!name || !ownerId || createMutation.isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
+          className="w-full"
+          size="lg"
         >
           {createMutation.isPending ? (
-            <Loader2 size={20} className="animate-spin mr-2" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <Check size={20} className="mr-2" />
+            <Check size={20} />
           )}
           Add Horse
         </Button>

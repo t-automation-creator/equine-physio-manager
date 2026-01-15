@@ -152,30 +152,30 @@ export default function NewAppointment() {
 
       <div className="space-y-6">
         {/* Date & Time */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <h3 className="font-semibold text-stone-800 mb-4">When</h3>
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <h3 className="font-bold text-gray-900 mb-4">When</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="mb-2 block">Date</Label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="pl-10 rounded-xl"
+                  className="pl-12"
                 />
               </div>
             </div>
             <div>
               <Label className="mb-2 block">Time (optional)</Label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="pl-10 rounded-xl"
+                  className="pl-12"
                 />
               </div>
             </div>
@@ -183,10 +183,10 @@ export default function NewAppointment() {
         </div>
 
         {/* Client */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">Client</Label>
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <Label className="text-base font-bold text-gray-900 mb-4 block">Client</Label>
           <Select value={clientId} onValueChange={handleClientChange}>
-            <SelectTrigger className="rounded-xl h-12">
+            <SelectTrigger>
               <SelectValue placeholder="Select a client" />
             </SelectTrigger>
             <SelectContent>
@@ -200,10 +200,10 @@ export default function NewAppointment() {
         </div>
 
         {/* Yard */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">Yard (optional)</Label>
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <Label className="text-base font-bold text-gray-900 mb-4 block">Yard (optional)</Label>
           <Select value={yardId} onValueChange={setYardId}>
-            <SelectTrigger className="rounded-xl h-12">
+            <SelectTrigger>
               <SelectValue placeholder="Select a yard" />
             </SelectTrigger>
             <SelectContent>
@@ -218,13 +218,13 @@ export default function NewAppointment() {
 
         {/* Horses */}
         {clientId && (
-          <div className="bg-white rounded-2xl border border-stone-200 p-5">
-            <Label className="text-base font-semibold text-stone-800 mb-4 block">
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <Label className="text-base font-bold text-gray-900 mb-4 block">
               Horses to Treat
             </Label>
             
             {availableHorses.length === 0 ? (
-              <p className="text-stone-500 text-center py-4">
+              <p className="text-gray-500 text-center py-4">
                 This client has no horses registered
               </p>
             ) : (
@@ -236,19 +236,19 @@ export default function NewAppointment() {
                     className={`
                       w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left
                       ${selectedHorses.includes(horse.id)
-                        ? 'border-emerald-600 bg-emerald-50'
-                        : 'border-stone-200 hover:border-stone-300'
+                        ? 'border-cvs-blue bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
                       }
                     `}
                   >
                     <Checkbox 
                       checked={selectedHorses.includes(horse.id)}
-                      className="data-[state=checked]:bg-emerald-600"
+                      className="data-[state=checked]:bg-cvs-blue data-[state=checked]:border-cvs-blue"
                     />
                     <div className="flex-1">
-                      <p className="font-medium text-stone-800">{horse.name}</p>
+                      <p className="font-semibold text-gray-900">{horse.name}</p>
                       {horse.discipline && (
-                        <p className="text-sm text-stone-500">{horse.discipline}</p>
+                        <p className="text-sm text-gray-500">{horse.discipline}</p>
                       )}
                     </div>
                   </button>
@@ -259,14 +259,14 @@ export default function NewAppointment() {
         )}
 
         {/* Recurring Options */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
           <div className="flex items-center gap-3 mb-4">
             <Checkbox 
               checked={isRecurring}
               onCheckedChange={setIsRecurring}
-              className="data-[state=checked]:bg-emerald-600"
+              className="data-[state=checked]:bg-cvs-blue data-[state=checked]:border-cvs-blue"
             />
-            <Label className="text-base font-semibold text-stone-800">
+            <Label className="text-base font-bold text-gray-900">
               Recurring Appointment
             </Label>
           </div>
@@ -276,7 +276,7 @@ export default function NewAppointment() {
               <div>
                 <Label className="mb-2 block">Repeat</Label>
                 <Select value={recurrencePattern} onValueChange={setRecurrencePattern}>
-                  <SelectTrigger className="rounded-xl">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -290,13 +290,13 @@ export default function NewAppointment() {
               <div>
                 <Label className="mb-2 block">End Date</Label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <Input
                     type="date"
                     value={recurrenceEndDate}
                     onChange={(e) => setRecurrenceEndDate(e.target.value)}
                     min={date}
-                    className="pl-10 rounded-xl"
+                    className="pl-12"
                   />
                 </div>
               </div>
@@ -305,15 +305,14 @@ export default function NewAppointment() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-4 block">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <Label className="text-base font-bold text-gray-900 mb-4 block">
             Notes (optional)
           </Label>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Any notes for this appointment..."
-            className="rounded-xl"
           />
         </div>
 
@@ -321,12 +320,13 @@ export default function NewAppointment() {
         <Button 
           onClick={handleSubmit}
           disabled={!clientId || selectedHorses.length === 0 || createMutation.isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
+          className="w-full"
+          size="lg"
         >
           {createMutation.isPending ? (
-            <Loader2 size={20} className="animate-spin mr-2" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <Check size={20} className="mr-2" />
+            <Check size={20} />
           )}
           Create Appointment
         </Button>

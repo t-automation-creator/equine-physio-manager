@@ -84,8 +84,8 @@ export default function AppointmentDetail() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
-        <div className="h-8 bg-stone-200 rounded w-1/3" />
-        <div className="h-40 bg-stone-200 rounded-2xl" />
+        <div className="h-8 bg-gray-200 rounded w-1/3" />
+        <div className="h-40 bg-gray-200 rounded-2xl" />
       </div>
     );
   }
@@ -107,12 +107,12 @@ export default function AppointmentDetail() {
       />
 
       {/* Client & Yard Info */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-5 mb-4">
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-stone-800">{client?.name || 'Unknown Client'}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{client?.name || 'Unknown Client'}</h2>
             {yard && (
-              <div className="flex items-center gap-1.5 text-stone-500 mt-1">
+              <div className="flex items-center gap-1.5 text-gray-500 mt-1">
                 <MapPin size={16} />
                 <span>{yard.name}</span>
               </div>
@@ -123,7 +123,7 @@ export default function AppointmentDetail() {
 
         <div className="flex flex-wrap gap-4 text-sm">
           {appointment.time && (
-            <div className="flex items-center gap-1.5 text-stone-500">
+            <div className="flex items-center gap-1.5 text-gray-500">
               <Clock size={16} />
               <span>{appointment.time}</span>
             </div>
@@ -131,7 +131,7 @@ export default function AppointmentDetail() {
           {client?.phone && (
             <a 
               href={`tel:${client.phone}`}
-              className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700"
+              className="flex items-center gap-1.5 text-cvs-blue hover:text-cvs-blue/80"
             >
               <Phone size={16} />
               <span>{client.phone}</span>
@@ -140,7 +140,7 @@ export default function AppointmentDetail() {
           {client?.email && (
             <a 
               href={`mailto:${client.email}`}
-              className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700"
+              className="flex items-center gap-1.5 text-cvs-blue hover:text-cvs-blue/80"
             >
               <Mail size={16} />
               <span>{client.email}</span>
@@ -150,8 +150,8 @@ export default function AppointmentDetail() {
       </div>
 
       {/* Horses List */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-5 mb-4">
-        <h3 className="font-semibold text-stone-800 mb-4">Horses to Treat</h3>
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+        <h3 className="font-bold text-gray-900 mb-4">Horses to Treat</h3>
         
         <div className="space-y-3">
           {appointmentHorses.map((horse) => {
@@ -159,12 +159,12 @@ export default function AppointmentDetail() {
             return (
               <div 
                 key={horse.id}
-                className="flex items-center justify-between p-4 bg-stone-50 rounded-xl"
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
               >
                 <div className="flex-1">
-                  <h4 className="font-medium text-stone-800">{horse.name}</h4>
+                  <h4 className="font-semibold text-gray-900">{horse.name}</h4>
                   {horse.discipline && (
-                    <p className="text-sm text-stone-500">{horse.discipline}</p>
+                    <p className="text-sm text-gray-500">{horse.discipline}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
@@ -172,25 +172,21 @@ export default function AppointmentDetail() {
                   <Link to={createPageUrl(`TreatmentEntry?appointmentId=${appointmentId}&horseId=${horse.id}`)}>
                     <Button 
                       size="sm"
-                      className={`rounded-xl ${
-                        treatment?.status === 'completed'
-                          ? 'bg-stone-200 text-stone-600 hover:bg-stone-300'
-                          : 'bg-emerald-600 hover:bg-emerald-700'
-                      }`}
+                      variant={treatment?.status === 'completed' ? 'outline' : 'default'}
                     >
                       {treatment?.status === 'completed' ? (
                         <>
-                          <Check size={16} className="mr-1" />
+                          <Check size={16} />
                           View
                         </>
                       ) : treatment?.status === 'in_progress' ? (
                         <>
-                          <Play size={16} className="mr-1" />
+                          <Play size={16} />
                           Continue
                         </>
                       ) : (
                         <>
-                          <Play size={16} className="mr-1" />
+                          <Play size={16} />
                           Start
                         </>
                       )}
@@ -207,8 +203,8 @@ export default function AppointmentDetail() {
       <div className="space-y-3">
         {allTreatmentsComplete && !invoice && (
           <Link to={createPageUrl(`CreateInvoice?appointmentId=${appointmentId}`)}>
-            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold">
-              <FileText size={20} className="mr-2" />
+            <Button className="w-full" size="lg">
+              <FileText size={20} />
               Create Invoice
             </Button>
           </Link>
@@ -218,9 +214,10 @@ export default function AppointmentDetail() {
           <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
             <Button 
               variant="outline" 
-              className="w-full rounded-xl h-10 border-2 font-medium"
+              className="w-full"
+              size="lg"
             >
-              <FileText size={16} className="mr-2" />
+              <FileText size={16} />
               View Invoice
               <StatusBadge status={invoice.status} />
             </Button>
@@ -230,7 +227,8 @@ export default function AppointmentDetail() {
         {appointment.status === 'scheduled' && (
           <Button 
             variant="outline"
-            className="w-full rounded-xl h-12"
+            className="w-full"
+            size="lg"
             onClick={() => updateStatusMutation.mutate('in_progress')}
           >
             Mark as In Progress
@@ -240,7 +238,8 @@ export default function AppointmentDetail() {
         {appointment.status === 'in_progress' && allTreatmentsComplete && (
           <Button 
             variant="outline"
-            className="w-full rounded-xl h-12"
+            className="w-full"
+            size="lg"
             onClick={() => updateStatusMutation.mutate('completed')}
           >
             Mark as Completed

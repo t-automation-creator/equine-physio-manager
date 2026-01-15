@@ -156,7 +156,7 @@ Annie McAndrew Vet Physio
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-cvs-blue" />
       </div>
     );
   }
@@ -195,9 +195,8 @@ Annie McAndrew Vet Physio
         }}>
           <Button
             onClick={() => window.print()}
-            className="bg-emerald-600 hover:bg-emerald-700 shadow-lg"
           >
-            <Printer size={18} className="mr-2" />
+            <Printer size={18} />
             Print
           </Button>
           <Button
@@ -231,31 +230,31 @@ Annie McAndrew Vet Physio
       <div className={`
         rounded-2xl p-5 mb-6 flex items-center gap-4
         ${invoice.status === 'paid' 
-          ? 'bg-emerald-50 border border-emerald-200' 
+          ? 'bg-green-50 border border-green-200' 
           : invoice.status === 'sent'
           ? 'bg-blue-50 border border-blue-200'
-          : 'bg-stone-100 border border-stone-200'
+          : 'bg-gray-100 border border-gray-200'
         }
       `}>
         <div className={`
           w-12 h-12 rounded-xl flex items-center justify-center
           ${invoice.status === 'paid' 
-            ? 'bg-emerald-100' 
+            ? 'bg-green-100' 
             : invoice.status === 'sent'
             ? 'bg-blue-100'
-            : 'bg-stone-200'
+            : 'bg-gray-200'
           }
         `}>
           {invoice.status === 'paid' ? (
-            <CheckCircle className="w-6 h-6 text-emerald-600" />
+            <CheckCircle className="w-6 h-6 text-cvs-green" />
           ) : (
-            <FileText className={`w-6 h-6 ${invoice.status === 'sent' ? 'text-blue-600' : 'text-stone-600'}`} />
+            <FileText className={`w-6 h-6 ${invoice.status === 'sent' ? 'text-cvs-blue' : 'text-gray-600'}`} />
           )}
         </div>
         <div>
           <StatusBadge status={invoice.status} />
           {invoice.paid_date && (
-            <p className="text-sm text-emerald-600 mt-1">
+            <p className="text-sm text-cvs-green mt-1">
               Paid on {format(new Date(invoice.paid_date), 'MMMM d, yyyy')}
             </p>
           )}
@@ -263,25 +262,25 @@ Annie McAndrew Vet Physio
       </div>
 
       {/* Invoice Details */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-5 mb-4">
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
-            <p className="text-sm text-stone-500">Invoice Date</p>
-            <p className="font-medium text-stone-800">
+            <p className="text-sm text-gray-500">Invoice Date</p>
+            <p className="font-semibold text-gray-900">
               {format(new Date(invoice.created_date), 'MMM d, yyyy')}
             </p>
           </div>
           <div>
-            <p className="text-sm text-stone-500">Due Date</p>
-            <p className="font-medium text-stone-800">
+            <p className="text-sm text-gray-500">Due Date</p>
+            <p className="font-semibold text-gray-900">
               {invoice.due_date ? format(new Date(invoice.due_date), 'MMM d, yyyy') : '-'}
             </p>
           </div>
         </div>
 
         {/* Line Items */}
-        <div className="border-t border-stone-100 pt-4">
-          <h4 className="font-semibold text-stone-800 mb-3">Items</h4>
+        <div className="border-t border-gray-100 pt-4">
+          <h4 className="font-bold text-gray-900 mb-3">Items</h4>
           <div className="space-y-3">
             {invoice.line_items?.map((item, index) => (
               <div 
@@ -289,12 +288,12 @@ Annie McAndrew Vet Physio
                 className="flex items-center justify-between py-2"
               >
                 <div className="flex-1">
-                  <p className="font-medium text-stone-700">{item.description}</p>
-                  <p className="text-sm text-stone-500">
+                  <p className="font-medium text-gray-700">{item.description}</p>
+                  <p className="text-sm text-gray-500">
                     {item.quantity} × £{item.unit_price?.toFixed(2)}
                   </p>
                 </div>
-                <p className="font-medium text-stone-800">
+                <p className="font-semibold text-gray-900">
                   £{item.total?.toFixed(2)}
                 </p>
               </div>
@@ -303,10 +302,10 @@ Annie McAndrew Vet Physio
         </div>
 
         {/* Total */}
-        <div className="border-t border-stone-200 mt-4 pt-4">
+        <div className="border-t border-gray-200 mt-4 pt-4">
           <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold text-stone-800">Total</span>
-            <span className="text-2xl font-bold text-emerald-600">
+            <span className="text-lg font-bold text-gray-900">Total</span>
+            <span className="text-2xl font-bold text-cvs-green">
               £{invoice.total_amount?.toFixed(2)}
             </span>
           </div>
@@ -314,9 +313,9 @@ Annie McAndrew Vet Physio
 
         {/* Notes */}
         {invoice.notes && (
-          <div className="border-t border-stone-100 mt-4 pt-4">
-            <p className="text-sm text-stone-500 mb-1">Notes</p>
-            <p className="text-stone-700">{invoice.notes}</p>
+          <div className="border-t border-gray-100 mt-4 pt-4">
+            <p className="text-sm text-gray-500 mb-1">Notes</p>
+            <p className="text-gray-700">{invoice.notes}</p>
           </div>
         )}
       </div>
@@ -327,9 +326,10 @@ Annie McAndrew Vet Physio
         <Button 
           onClick={handlePrint}
           variant="outline"
-          className="w-full rounded-xl h-12 border-2 border-stone-300 hover:bg-stone-50"
+          className="w-full"
+          size="lg"
         >
-          <Printer size={20} className="mr-2" />
+          <Printer size={20} />
           View / Print Invoice
         </Button>
 
@@ -337,12 +337,13 @@ Annie McAndrew Vet Physio
           <Button 
             onClick={handleSendEmail}
             disabled={sending || !client?.email}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
+            className="w-full"
+            size="lg"
           >
             {sending ? (
-              <Loader2 size={20} className="animate-spin mr-2" />
+              <Loader2 size={20} className="animate-spin" />
             ) : (
-              <Mail size={20} className="mr-2" />
+              <Mail size={20} />
             )}
             Send Invoice by Email
           </Button>
@@ -353,31 +354,33 @@ Annie McAndrew Vet Physio
             <Button 
               variant="outline"
               onClick={handleCopyLink}
-              className="w-full rounded-xl h-12 border-2"
+              className="w-full"
+              size="lg"
             >
               {copied ? (
                 <>
-                  <Check size={18} className="mr-2 text-emerald-600" />
+                  <Check size={18} className="text-cvs-green" />
                   Copied!
                 </>
               ) : (
                 <>
-                  <LinkIcon size={18} className="mr-2" />
+                  <LinkIcon size={18} />
                   Copy Payment Link
                 </>
               )}
             </Button>
 
             <Button 
-              variant="outline"
+              variant="success"
               onClick={handleMarkPaid}
               disabled={updateMutation.isPending}
-              className="w-full rounded-xl h-12 border-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+              className="w-full"
+              size="lg"
             >
               {updateMutation.isPending ? (
-                <Loader2 size={18} className="animate-spin mr-2" />
+                <Loader2 size={18} className="animate-spin" />
               ) : (
-                <CheckCircle size={18} className="mr-2" />
+                <CheckCircle size={18} />
               )}
               Mark as Paid
             </Button>

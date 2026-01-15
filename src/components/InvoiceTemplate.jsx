@@ -38,8 +38,8 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
         {/* Invoice Title and Client Info */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h2 className="text-4xl font-light text-stone-800 mb-6">INVOICE</h2>
-            <div className="space-y-1 text-stone-700">
+            <h2 className="text-4xl font-light text-gray-800 mb-6">INVOICE</h2>
+            <div className="space-y-1 text-gray-700">
               <div className="flex gap-8">
                 <span className="font-semibold w-24">Invoice date:</span>
                 <span>{invoiceDate}</span>
@@ -51,9 +51,9 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-stone-500 mb-2">INVOICE TO</p>
-            <p className="text-xl font-semibold text-stone-800">{client?.name || 'Client Name'}</p>
-            <p className="text-stone-600">{client?.email || ''}</p>
+            <p className="text-sm text-gray-500 mb-2">INVOICE TO</p>
+            <p className="text-xl font-semibold text-gray-800">{client?.name || 'Client Name'}</p>
+            <p className="text-gray-600">{client?.email || ''}</p>
           </div>
         </div>
 
@@ -61,20 +61,20 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
         <div className="mb-12">
           <table className="w-full">
             <thead>
-              <tr className="border-b-2 border-stone-300">
-                <th className="text-left py-3 font-semibold text-stone-700 w-1/2">DESCRIPTIONS</th>
-                <th className="text-center py-3 font-semibold text-stone-700 w-1/6">PRICE</th>
-                <th className="text-center py-3 font-semibold text-stone-700 w-1/6">QTY</th>
-                <th className="text-right py-3 font-semibold text-stone-700 w-1/6">AMOUNT</th>
+              <tr className="border-b-2 border-gray-300">
+                <th className="text-left py-3 font-semibold text-gray-700 w-1/2">DESCRIPTIONS</th>
+                <th className="text-center py-3 font-semibold text-gray-700 w-1/6">PRICE</th>
+                <th className="text-center py-3 font-semibold text-gray-700 w-1/6">QTY</th>
+                <th className="text-right py-3 font-semibold text-gray-700 w-1/6">AMOUNT</th>
               </tr>
             </thead>
             <tbody>
               {invoice?.line_items?.map((item, index) => (
-                <tr key={index} className="border-b border-stone-200">
-                  <td className="py-4 text-stone-700">{item.description}</td>
-                  <td className="py-4 text-center text-stone-700">£{item.unit_price?.toFixed(0) || item.unit_price}</td>
-                  <td className="py-4 text-center text-stone-700">{item.quantity}</td>
-                  <td className="py-4 text-right text-stone-700">£{item.total?.toFixed(0) || item.total}</td>
+                <tr key={index} className="border-b border-gray-200">
+                  <td className="py-4 text-gray-700">{item.description}</td>
+                  <td className="py-4 text-center text-gray-700">£{item.unit_price?.toFixed(0) || item.unit_price}</td>
+                  <td className="py-4 text-center text-gray-700">{item.quantity}</td>
+                  <td className="py-4 text-right text-gray-700">£{item.total?.toFixed(0) || item.total}</td>
                 </tr>
               ))}
             </tbody>
@@ -84,8 +84,8 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
         {/* Payment Details and Total */}
         <div className="flex justify-between items-end">
           <div>
-            <h3 className="font-bold text-stone-800 mb-3">PAYMENT DETAILS</h3>
-            <div className="space-y-1 text-stone-700 text-sm">
+            <h3 className="font-bold text-gray-800 mb-3">PAYMENT DETAILS</h3>
+            <div className="space-y-1 text-gray-700 text-sm">
               <div className="flex gap-4">
                 <span className="w-28">Account Name:</span>
                 <span className="font-semibold">{businessInfo.bankName}</span>
@@ -100,14 +100,14 @@ const InvoiceTemplate = forwardRef(({ invoice, client, settings }, ref) => {
               </div>
             </div>
             
-            <h3 className="font-bold text-stone-800 mt-6 mb-2">TERMS & CONDITIONS</h3>
-            <p className="text-stone-600 text-sm">Payment due on receipt of invoice</p>
+            <h3 className="font-bold text-gray-800 mt-6 mb-2">TERMS & CONDITIONS</h3>
+            <p className="text-gray-600 text-sm">Payment due on receipt of invoice</p>
           </div>
 
           <div className="text-right">
             <div className="flex items-center gap-8">
-              <span className="text-stone-600 font-medium">TOTAL</span>
-              <span className="text-2xl font-bold text-stone-800">£{invoice?.total_amount?.toFixed(0) || '0'}</span>
+              <span className="text-gray-600 font-medium">TOTAL</span>
+              <span className="text-2xl font-bold text-gray-800">£{invoice?.total_amount?.toFixed(0) || '0'}</span>
             </div>
           </div>
         </div>

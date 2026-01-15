@@ -53,6 +53,8 @@ const TREATMENT_TYPES = [
   'Taping',
 ];
 
+const MAX_RECORDING_SECONDS = 300; // 5 minutes max
+
 export default function TreatmentEntry() {
   const urlParams = new URLSearchParams(window.location.search);
   const appointmentId = urlParams.get('appointmentId');
@@ -82,7 +84,7 @@ export default function TreatmentEntry() {
       return horses[0];
     },
     enabled: !!horseId,
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: owner } = useQuery({
@@ -92,7 +94,7 @@ export default function TreatmentEntry() {
       return clients[0];
     },
     enabled: !!horse?.owner_id,
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: user } = useQuery({
@@ -126,14 +128,12 @@ export default function TreatmentEntry() {
 
   useEffect(() => {
     if (existingTreatment) {
-      // Parse existing notes - try JSON first, fall back to legacy format
       if (existingTreatment.notes) {
         try {
           const parsed = JSON.parse(existingTreatment.notes);
           if (Array.isArray(parsed)) {
             setNoteEntries(parsed);
           } else {
-            // Legacy: plain text, convert to single entry
             setNoteEntries([{
               id: Date.now(),
               text: existingTreatment.notes,
@@ -142,7 +142,6 @@ export default function TreatmentEntry() {
             }]);
           }
         } catch {
-          // Legacy: plain text, convert to single entry
           setNoteEntries([{
             id: Date.now(),
             text: existingTreatment.notes,
@@ -157,34 +156,22 @@ export default function TreatmentEntry() {
     }
   }, [existingTreatment]);
 
-  // Compute serialized notes for saving
   const serializedNotes = useMemo(() => {
     if (noteEntries.length === 0) return '';
     return JSON.stringify(noteEntries);
   }, [noteEntries]);
 
-  // Cleanup effect when component unmounts or navigates away
   useEffect(() => {
     return () => {
-      console.log('[Cleanup] TreatmentEntry unmounting, cleaning up...');
-
-      // Stop recording if active
       if (mediaRecorder && recording) {
-        console.log('[Cleanup] Stopping active recording');
         try {
           mediaRecorder.stop();
-          mediaRecorder.stream?.getTracks().forEach(track => {
-            track.stop();
-            console.log('[Cleanup] Stopped media track');
-          });
+          mediaRecorder.stream?.getTracks().forEach(track => track.stop());
         } catch (error) {
           console.error('[Cleanup] Error stopping recorder:', error);
         }
       }
-
-      // Reset transcribing state
       if (transcribing) {
-        console.log('[Cleanup] Resetting transcribing state');
         setTranscribing(false);
       }
     };
@@ -203,22 +190,17 @@ export default function TreatmentEntry() {
       }
     },
     onMutate: async (newData) => {
-      // Optimistic update - immediately update UI without waiting for server
       await queryClient.cancelQueries(['treatment', appointmentId, horseId]);
-      
       const previousTreatment = queryClient.getQueryData(['treatment', appointmentId, horseId]);
-      
       if (existingTreatment) {
         queryClient.setQueryData(['treatment', appointmentId, horseId], {
           ...existingTreatment,
           ...newData,
         });
       }
-      
       return { previousTreatment };
     },
     onError: (err, newData, context) => {
-      // Rollback on error
       if (context?.previousTreatment) {
         queryClient.setQueryData(
           ['treatment', appointmentId, horseId],
@@ -240,15 +222,13 @@ export default function TreatmentEntry() {
         status: 'in_progress',
       }, {
         onSettled: () => {
-          // Delay hiding saving indicator to give user feedback
           setTimeout(() => setSaving(false), 300);
         },
       });
-    }, 1500), // Increased debounce to reduce API calls
+    }, 1500),
     [existingTreatment]
   );
 
-  // Add a new typed note entry
   const addTypedNote = () => {
     if (!currentNote.trim()) return;
     
@@ -273,7 +253,6 @@ export default function TreatmentEntry() {
     toast.success('Note added', { duration: 1500 });
   };
 
-  // Add a voice transcription entry
   const addVoiceNote = (transcribedText) => {
     const newEntry = {
       id: Date.now(),
@@ -293,13 +272,11 @@ export default function TreatmentEntry() {
     });
   };
 
-  // Request to delete a note entry (opens confirmation dialog)
   const requestDeleteNote = (id) => {
     setNoteToDelete(id);
     setDeleteConfirmOpen(true);
   };
 
-  // Actually delete the note entry after confirmation
   const confirmDeleteNote = () => {
     if (!noteToDelete) return;
     
@@ -318,7 +295,6 @@ export default function TreatmentEntry() {
     setNoteToDelete(null);
   };
 
-  // Format timestamp for display - always show date and time
   const formatTimestamp = (isoString) => {
     const date = new Date(isoString);
     const today = new Date();
@@ -357,152 +333,113 @@ export default function TreatmentEntry() {
     if (!file) return;
 
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    const newPhotos = [...photoUrls, file_url];
-    setPhotoUrls(newPhotos);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const newUrls = [...photoUrls, file_url];
+      setPhotoUrls(newUrls);
+      autoSave({
+        notes: serializedNotes,
+        treatment_types: selectedTypes,
+        follow_up_date: followUpDate,
+        photo_urls: newUrls,
+      });
+    } catch (error) {
+      toast.error('Failed to upload photo');
+    }
     setUploading(false);
-
-    autoSave({
-      notes: serializedNotes,
-      treatment_types: selectedTypes,
-      follow_up_date: followUpDate,
-      photo_urls: newPhotos,
-    });
   };
 
   const removePhoto = (index) => {
-    const newPhotos = photoUrls.filter((_, i) => i !== index);
-    setPhotoUrls(newPhotos);
+    const newUrls = photoUrls.filter((_, i) => i !== index);
+    setPhotoUrls(newUrls);
     autoSave({
       notes: serializedNotes,
       treatment_types: selectedTypes,
       follow_up_date: followUpDate,
-      photo_urls: newPhotos,
+      photo_urls: newUrls,
     });
   };
-
-  // OpenAI Whisper API for reliable audio transcription
-  // Max recording: 3 minutes to manage API costs and file sizes
-  const MAX_RECORDING_SECONDS = 180; // 3 minutes
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      // Detect supported MIME type (browser-specific)
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : MediaRecorder.isTypeSupported('audio/mp4')
-        ? 'audio/mp4'
-        : 'audio/ogg';
-
-      const recorder = new MediaRecorder(stream, { mimeType });
-      const chunks = [];
-
-      setAudioMimeType(mimeType);
-      setRecordingDuration(0);
-
-      // Timer to track and limit recording duration
-      const startTime = Date.now();
-      const timer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        setRecordingDuration(elapsed);
-
-        // Auto-stop at max duration
-        if (elapsed >= MAX_RECORDING_SECONDS) {
-          stopRecording();
+      
+      const mimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg;codecs=opus',
+        'audio/ogg',
+      ];
+      
+      let selectedMimeType = '';
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          break;
         }
+      }
+      
+      setAudioMimeType(selectedMimeType);
+      
+      const options = selectedMimeType ? { mimeType: selectedMimeType } : {};
+      const recorder = new MediaRecorder(stream, options);
+      const chunks = [];
+      
+      setRecordingDuration(0);
+      const durationInterval = setInterval(() => {
+        setRecordingDuration(prev => {
+          if (prev >= MAX_RECORDING_SECONDS - 1) {
+            recorder.stop();
+            return prev;
+          }
+          return prev + 1;
+        });
       }, 1000);
 
       recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
+        if (e.data.size > 0) {
           chunks.push(e.data);
         }
       };
+
       recorder.onstop = async () => {
-        clearInterval(timer);
-        setRecordingDuration(0);
-
-        const blob = new Blob(chunks, { type: mimeType });
+        clearInterval(durationInterval);
         stream.getTracks().forEach(track => track.stop());
-
-        // Check file size (warn if > 5MB)
-        const sizeMB = blob.size / (1024 * 1024);
-        if (sizeMB > 5) {
-          toast(`Recording is large (${sizeMB.toFixed(1)}MB). Transcription may take longer.`, {
-            icon: '⚠️',
-            duration: 5000
-          });
+        
+        if (chunks.length === 0) {
+          toast.error('No audio recorded');
+          return;
         }
-
+        
         setTranscribing(true);
+        
         try {
-          // Convert blob to base64
-          const reader = new FileReader();
-          reader.readAsDataURL(blob);
-          await new Promise((resolve) => {
-            reader.onloadend = resolve;
+          const actualMimeType = recorder.mimeType || selectedMimeType || 'audio/webm';
+          const blob = new Blob(chunks, { type: actualMimeType });
+          
+          let extension = 'webm';
+          if (actualMimeType.includes('mp4')) extension = 'mp4';
+          else if (actualMimeType.includes('ogg')) extension = 'ogg';
+          else if (actualMimeType.includes('wav')) extension = 'wav';
+          
+          const file = new File([blob], `recording.${extension}`, { type: actualMimeType });
+          
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          
+          const { text } = await base44.integrations.Core.Transcribe({
+            audio_url: file_url,
           });
-          const base64Audio = reader.result.split(',')[1];
-
-          // Call Base44 serverless function to transcribe via OpenAI Whisper
-          console.log(`[Frontend] Sending transcription request: mimeType=${mimeType}, audioSize=${base64Audio.length}`);
-          const response = await base44.functions.invoke('transcribeAudio', {
-            audioBlob: base64Audio,
-            mimeType: mimeType
-          });
-          console.log('[Frontend] Received response:', response);
-          const result = response.data;
-
-          if (!result || result.error) {
-            const errorMsg = result?.error || 'Transcription failed';
-            console.error('[Frontend] Transcription error:', { errorMsg, fullResult: result });
-
-            // Handle rate limiting with helpful info about retries
-            if (result?.retryAfter) {
-              toast.error(
-                `Rate limit reached. The system automatically tried 5 times over 60 seconds. Please wait ${result.retryAfter} seconds before recording again.`,
-                { duration: 8000 }
-              );
-            }
-            // Handle authentication errors
-            else if (errorMsg.includes('authentication') || errorMsg.includes('API key')) {
-              toast.error('API configuration error. Please contact support.', { duration: 5000 });
-            }
-            // Handle rate limit errors
-            else if (errorMsg.toLowerCase().includes('rate limit')) {
-              toast.error('Rate limit reached. Please wait 1 minute and try again.', { duration: 5000 });
-            }
-            // Generic errors
-            else {
-              toast.error(`Transcription failed: ${errorMsg}`, { duration: 4000 });
-            }
-            return;
+          
+          if (text && text.trim()) {
+            addVoiceNote(text.trim());
+            toast.success('Voice note added!', { duration: 2000 });
+          } else {
+            toast.error('No speech detected. Please try again.', { duration: 3000 });
           }
-
-          const { text } = result;
-          const transcribedText = text || '';
-
-          if (!transcribedText.trim()) {
-            toast.error('No speech detected. Please speak clearly and try again.', { duration: 4000 });
-            return;
-          }
-
-          // Add as a timestamped voice note entry
-          addVoiceNote(transcribedText);
-
-          // Show success feedback
-          toast.success('Voice note added!', { duration: 2000 });
         } catch (error) {
-          console.error('[Frontend] Transcription exception:', error);
-          console.error('[Frontend] Error details:', {
-            message: error.message,
-            status: error.response?.status,
-            response: error.response,
-            stack: error.stack
-          });
+          console.error('Transcription error:', error);
           const errorMsg = error.message || 'Unknown error';
-
           if (error.response?.status === 429 || errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
             toast.error('Rate limit reached. Please wait 1 minute and try again.', { duration: 5000 });
           } else {
@@ -513,8 +450,6 @@ export default function TreatmentEntry() {
         }
       };
 
-      // iOS Safari fix: Use timeslice parameter to chunk audio into 1-second pieces
-      // This fixes Safari's mp4 encoding issue where Whisper only transcribes first few words
       recorder.start(1000);
       setMediaRecorder(recorder);
       setRecording(true);
@@ -546,7 +481,7 @@ export default function TreatmentEntry() {
   if (loadingTreatment) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-cvs-blue" />
       </div>
     );
   }
@@ -559,14 +494,14 @@ export default function TreatmentEntry() {
       />
 
       {saving && (
-        <div className="fixed top-20 right-4 bg-stone-800 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 z-50 md:top-4">
+        <div className="fixed top-20 right-4 bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 z-50 md:top-4">
           <Loader2 size={14} className="animate-spin" />
           Saving...
         </div>
       )}
 
-      {/* Horse Context Banner - Always Visible */}
-      <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-6 mb-6 text-white shadow-lg border-4 border-emerald-800">
+      {/* Horse Context Banner */}
+      <div className="bg-gradient-to-br from-cvs-blue to-blue-700 rounded-2xl p-6 mb-6 text-white shadow-lg border-4 border-blue-800">
         <div className="flex items-center gap-4 mb-3">
           {horse?.photo_url && (
             <img 
@@ -577,7 +512,7 @@ export default function TreatmentEntry() {
           )}
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-1">{horse?.name || 'Loading...'}</h2>
-            <div className="flex items-center gap-2 text-emerald-100">
+            <div className="flex items-center gap-2 text-blue-100">
               <User size={16} />
               <span className="font-medium">{owner?.name || 'Loading owner...'}</span>
             </div>
@@ -590,10 +525,10 @@ export default function TreatmentEntry() {
         </div>
       </div>
 
-      {/* Last Treatment History - Collapsed */}
+      {/* Last Treatment History */}
       {lastTreatment && (
         <details className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 mb-6">
-          <summary className="font-semibold text-amber-900 cursor-pointer list-none flex items-center justify-between">
+          <summary className="font-bold text-amber-900 cursor-pointer list-none flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock size={18} />
               <span>Last Treatment History</span>
@@ -610,7 +545,7 @@ export default function TreatmentEntry() {
             </p>
             {lastTreatment.notes && (
               <div className="bg-white rounded-xl p-3 border border-amber-200">
-                <p className="text-sm text-stone-700">
+                <p className="text-sm text-gray-700">
                   {lastTreatment.notes.substring(0, 200)}
                   {lastTreatment.notes.length > 200 ? '...' : ''}
                 </p>
@@ -622,42 +557,37 @@ export default function TreatmentEntry() {
 
       <div className="space-y-4">
         {/* Notes - Primary Input */}
-        <div className="bg-white rounded-2xl border-2 border-stone-200 p-5">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 p-5">
           <div className="flex items-center justify-between mb-4">
-            <Label className="text-lg font-semibold text-stone-800">
+            <Label className="text-lg font-bold text-gray-900">
               Notes
             </Label>
           </div>
 
-          {/* Voice Recording Button - Redesigned for better UX */}
+          {/* Voice Recording Button */}
           <div className="mb-4">
             {transcribing ? (
-              // Transcribing State
-              <div className="flex items-center justify-center gap-3 p-4 bg-stone-100 rounded-xl border-2 border-stone-200">
-                <Loader2 size={24} className="animate-spin text-emerald-600" />
+              <div className="flex items-center justify-center gap-3 p-4 bg-gray-100 rounded-xl border-2 border-gray-200">
+                <Loader2 size={24} className="animate-spin text-cvs-blue" />
                 <div className="text-center">
-                  <p className="font-semibold text-stone-800">Transcribing...</p>
-                  <p className="text-sm text-stone-500">This may take a moment</p>
+                  <p className="font-bold text-gray-900">Transcribing...</p>
+                  <p className="text-sm text-gray-500">This may take a moment</p>
                 </div>
               </div>
             ) : recording ? (
-              // Recording State - Large, prominent stop button
               <button
                 onClick={stopRecording}
                 className="w-full flex flex-col items-center gap-3 p-5 bg-red-50 rounded-xl border-2 border-red-200 transition-all active:scale-[0.98]"
               >
-                {/* Pulsing recording indicator */}
                 <div className="relative">
-                  <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-16 h-16 bg-cvs-red rounded-full flex items-center justify-center shadow-lg">
                     <Square size={28} fill="white" className="text-white" />
                   </div>
-                  {/* Pulsing ring animation */}
                   <div className="absolute inset-0 w-16 h-16 bg-red-400 rounded-full animate-ping opacity-30" />
                 </div>
                 
-                {/* Timer display */}
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-red-600 font-mono">
+                  <p className="text-3xl font-bold text-cvs-red font-mono">
                     {Math.floor(recordingDuration / 60)}:{String(recordingDuration % 60).padStart(2, '0')}
                   </p>
                   <p className="text-sm font-medium text-red-500 mt-1">
@@ -665,10 +595,9 @@ export default function TreatmentEntry() {
                   </p>
                 </div>
                 
-                {/* Max duration indicator */}
                 <div className="w-full bg-red-200 rounded-full h-1.5 mt-2">
                   <div 
-                    className="bg-red-600 h-1.5 rounded-full transition-all duration-1000"
+                    className="bg-cvs-red h-1.5 rounded-full transition-all duration-1000"
                     style={{ width: `${(recordingDuration / MAX_RECORDING_SECONDS) * 100}%` }}
                   />
                 </div>
@@ -677,17 +606,16 @@ export default function TreatmentEntry() {
                 </p>
               </button>
             ) : (
-              // Idle State - Ready to record
               <button
                 onClick={startRecording}
-                className="w-full flex items-center justify-center gap-3 p-4 bg-emerald-50 hover:bg-emerald-100 rounded-xl border-2 border-emerald-200 hover:border-emerald-300 transition-all active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition-all active:scale-[0.98]"
               >
-                <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-cvs-blue rounded-full flex items-center justify-center shadow-md">
                   <Mic size={24} className="text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-emerald-800">Record Voice Note</p>
-                  <p className="text-sm text-emerald-600">Tap to start recording</p>
+                  <p className="font-bold text-gray-900">Record Voice Note</p>
+                  <p className="text-sm text-cvs-blue">Tap to start recording</p>
                 </div>
               </button>
             )}
@@ -702,15 +630,15 @@ export default function TreatmentEntry() {
                   className={`p-3 rounded-xl border-2 ${
                     entry.type === 'voice' 
                       ? 'bg-blue-50 border-blue-200' 
-                      : 'bg-stone-50 border-stone-200'
+                      : 'bg-gray-50 border-gray-200'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2 text-xs text-stone-500">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
                       {entry.type === 'voice' ? (
-                        <Mic size={12} className="text-blue-500" />
+                        <Mic size={12} className="text-cvs-blue" />
                       ) : (
-                        <Keyboard size={12} className="text-stone-400" />
+                        <Keyboard size={12} className="text-gray-400" />
                       )}
                       <span className="font-medium">
                         {entry.type === 'voice' ? 'Voice' : 'Typed'}
@@ -720,12 +648,12 @@ export default function TreatmentEntry() {
                     </div>
                     <button
                       onClick={() => requestDeleteNote(entry.id)}
-                      className="p-1 text-stone-400 hover:text-red-500 transition-colors"
+                      className="p-1 text-gray-400 hover:text-cvs-red transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <p className="text-sm text-stone-700 whitespace-pre-wrap">{entry.text}</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{entry.text}</p>
                 </div>
               ))}
             </div>
@@ -737,15 +665,15 @@ export default function TreatmentEntry() {
               value={currentNote}
               onChange={(e) => setCurrentNote(e.target.value)}
               placeholder="Type your observation here..."
-              className="min-h-[80px] rounded-xl border-stone-200 text-base"
+              className="min-h-[80px] text-base"
             />
             <button
               onClick={addTypedNote}
               disabled={!currentNote.trim()}
-              className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl font-medium transition-all ${
+              className={`w-full flex items-center justify-center gap-2 p-3 rounded-full font-semibold transition-all ${
                 currentNote.trim()
-                  ? 'bg-stone-800 text-white hover:bg-stone-900 active:scale-[0.98]'
-                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                  ? 'bg-gray-800 text-white hover:bg-gray-900 active:scale-[0.98]'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
               <Plus size={18} />
@@ -755,8 +683,8 @@ export default function TreatmentEntry() {
         </div>
 
         {/* Photos */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <Label className="text-base font-semibold text-stone-800 mb-3 block">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <Label className="text-base font-bold text-gray-900 mb-3 block">
             Photos (optional)
           </Label>
           
@@ -771,7 +699,7 @@ export default function TreatmentEntry() {
                   />
                   <button
                     onClick={() => removePhoto(index)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-cvs-red text-white rounded-full flex items-center justify-center"
                   >
                     <X size={14} />
                   </button>
@@ -789,16 +717,16 @@ export default function TreatmentEntry() {
               className="hidden"
             />
             <div className={`
-              flex items-center justify-center gap-2 p-4 border-2 border-dashed border-stone-300 rounded-xl cursor-pointer
-              hover:border-emerald-500 hover:bg-emerald-50 transition-colors
+              flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer
+              hover:border-cvs-blue hover:bg-blue-50 transition-colors
               ${uploading ? 'opacity-50' : ''}
             `}>
               {uploading ? (
-                <Loader2 size={20} className="animate-spin text-emerald-600" />
+                <Loader2 size={20} className="animate-spin text-cvs-blue" />
               ) : (
-                <Camera size={20} className="text-stone-500" />
+                <Camera size={20} className="text-gray-500" />
               )}
-              <span className="text-stone-600 font-medium">
+              <span className="text-gray-600 font-medium">
                 {uploading ? 'Uploading...' : 'Add Photo'}
               </span>
             </div>
@@ -806,8 +734,8 @@ export default function TreatmentEntry() {
         </div>
 
         {/* Treatment Types - Optional */}
-        <details className="bg-white rounded-2xl border border-stone-200 p-5">
-          <summary className="text-base font-semibold text-stone-800 cursor-pointer list-none">
+        <details className="bg-white rounded-2xl border border-gray-200 p-5">
+          <summary className="text-base font-bold text-gray-900 cursor-pointer list-none">
             Treatment Types (optional)
           </summary>
           <div className="grid grid-cols-2 gap-2 mt-4">
@@ -818,14 +746,14 @@ export default function TreatmentEntry() {
                 className={`
                   flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-left
                   ${selectedTypes.includes(type)
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-stone-200 text-stone-600'
+                    ? 'border-cvs-blue bg-blue-50 text-cvs-blue'
+                    : 'border-gray-200 text-gray-600'
                   }
                 `}
               >
                 <Checkbox 
                   checked={selectedTypes.includes(type)}
-                  className="data-[state=checked]:bg-emerald-600"
+                  className="data-[state=checked]:bg-cvs-blue data-[state=checked]:border-cvs-blue"
                 />
                 <span className="text-sm font-medium">{type}</span>
               </button>
@@ -834,41 +762,42 @@ export default function TreatmentEntry() {
         </details>
 
         {/* Follow-up Date - Optional */}
-        <details className="bg-white rounded-2xl border border-stone-200 p-5">
-          <summary className="text-base font-semibold text-stone-800 cursor-pointer list-none">
+        <details className="bg-white rounded-2xl border border-gray-200 p-5">
+          <summary className="text-base font-bold text-gray-900 cursor-pointer list-none">
             Follow-up Date (optional)
           </summary>
           <div className="flex items-center gap-3 mt-4">
-            <Calendar size={20} className="text-stone-400" />
+            <Calendar size={20} className="text-gray-400" />
             <Input
               type="date"
               value={followUpDate}
               onChange={(e) => {
                 setFollowUpDate(e.target.value);
                 autoSave({
-                  notes,
+                  notes: serializedNotes,
                   treatment_types: selectedTypes,
                   follow_up_date: e.target.value,
                   photo_urls: photoUrls,
                 });
               }}
-              className="flex-1 rounded-xl border-stone-200"
+              className="flex-1"
             />
           </div>
         </details>
       </div>
 
       {/* Fixed Finish Button */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-stone-50 via-stone-50 to-transparent md:relative md:bottom-0 md:mt-6 md:bg-none">
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent md:relative md:bottom-0 md:mt-6 md:bg-none">
         <Button 
           onClick={handleFinish}
           disabled={saveMutation.isPending}
-          className="w-full max-w-4xl mx-auto bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold shadow-lg"
+          className="w-full max-w-4xl mx-auto shadow-lg"
+          size="lg"
         >
           {saveMutation.isPending ? (
-            <Loader2 size={20} className="animate-spin mr-2" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <Check size={20} className="mr-2" />
+            <Check size={20} />
           )}
           Finish Treatment
         </Button>
@@ -886,13 +815,13 @@ export default function TreatmentEntry() {
           <AlertDialogFooter>
             <AlertDialogCancel 
               onClick={() => setNoteToDelete(null)}
-              className="rounded-xl"
+              className="rounded-full"
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDeleteNote}
-              className="bg-red-600 hover:bg-red-700 rounded-xl"
+              className="bg-cvs-red hover:bg-red-700 rounded-full"
             >
               Delete
             </AlertDialogAction>

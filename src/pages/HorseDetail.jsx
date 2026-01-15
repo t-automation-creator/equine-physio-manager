@@ -98,7 +98,7 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-cvs-blue" />
       </div>
     );
   }
@@ -114,8 +114,8 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
         backTo="Clients"
         action={
           <Link to={createPageUrl(`EditHorse?id=${horseId}`)}>
-            <Button variant="outline" className="rounded-xl">
-              <Edit size={18} className="mr-2" />
+            <Button variant="outline">
+              <Edit size={18} />
               Edit
             </Button>
           </Link>
@@ -134,53 +134,53 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
       )}
 
       {/* Basic Info */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-5 mb-4">
-        <h3 className="font-semibold text-stone-800 mb-4">Details</h3>
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+        <h3 className="font-bold text-gray-900 mb-4">Details</h3>
         <div className="grid grid-cols-2 gap-4">
           {horse.age && (
             <div>
-              <p className="text-sm text-stone-500">Age</p>
-              <p className="font-medium text-stone-800">{horse.age} years</p>
+              <p className="text-sm text-gray-500">Age</p>
+              <p className="font-semibold text-gray-900">{horse.age} years</p>
             </div>
           )}
           {horse.discipline && (
             <div>
-              <p className="text-sm text-stone-500">Discipline</p>
-              <p className="font-medium text-stone-800">{horse.discipline}</p>
+              <p className="text-sm text-gray-500">Discipline</p>
+              <p className="font-semibold text-gray-900">{horse.discipline}</p>
             </div>
           )}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-stone-100 space-y-3">
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
           {owner && (
             <Link 
               to={createPageUrl(`ClientDetail?id=${owner.id}`)}
-              className="flex items-center justify-between p-3 bg-stone-50 rounded-xl hover:bg-stone-100 transition-colors"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <User size={18} className="text-stone-400" />
+                <User size={18} className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-stone-500">Owner</p>
-                  <p className="font-medium text-stone-800">{owner.name}</p>
+                  <p className="text-sm text-gray-500">Owner</p>
+                  <p className="font-semibold text-gray-900">{owner.name}</p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-stone-400" />
+              <ChevronRight size={18} className="text-gray-400" />
             </Link>
           )}
 
           {yard && (
             <Link 
               to={createPageUrl(`YardDetail?id=${yard.id}`)}
-              className="flex items-center justify-between p-3 bg-stone-50 rounded-xl hover:bg-stone-100 transition-colors"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <MapPin size={18} className="text-stone-400" />
+                <MapPin size={18} className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-stone-500">Yard</p>
-                  <p className="font-medium text-stone-800">{yard.name}</p>
+                  <p className="text-sm text-gray-500">Yard</p>
+                  <p className="font-semibold text-gray-900">{yard.name}</p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-stone-400" />
+              <ChevronRight size={18} className="text-gray-400" />
             </Link>
           )}
         </div>
@@ -188,18 +188,18 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
 
       {/* Medical Notes */}
       {horse.medical_notes && (
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 mb-4">
-          <h3 className="font-semibold text-stone-800 mb-3">Medical Notes</h3>
-          <p className="text-stone-700 whitespace-pre-wrap">{horse.medical_notes}</p>
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+          <h3 className="font-bold text-gray-900 mb-3">Medical Notes</h3>
+          <p className="text-gray-700 whitespace-pre-wrap">{horse.medical_notes}</p>
         </div>
       )}
 
       {/* Treatment History */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-5">
+      <div className="bg-white rounded-2xl border border-gray-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-stone-800">Treatment History</h3>
-            <Badge className="bg-emerald-100 text-emerald-700">
+            <h3 className="font-bold text-gray-900">Treatment History</h3>
+            <Badge className="bg-cvs-blue/10 text-cvs-blue">
               {treatments.length}
             </Badge>
           </div>
@@ -208,36 +208,35 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
               variant="outline" 
               size="sm"
               onClick={handleExportPDF}
-              className="rounded-lg"
             >
-              <Download size={16} className="mr-1" />
+              <Download size={16} />
               Export
             </Button>
           )}
         </div>
 
         {treatments.length === 0 ? (
-          <div className="text-center py-8 text-stone-500">
+          <div className="text-center py-8 text-gray-500">
             <Activity size={32} className="mx-auto mb-2 opacity-50" />
             <p>No treatments recorded yet</p>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Latest Treatment - Prominent */}
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 rounded-2xl p-5">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp size={18} className="text-emerald-600" />
-                <span className="text-sm font-bold text-emerald-700 uppercase tracking-wide">
+                <TrendingUp size={18} className="text-cvs-blue" />
+                <span className="text-sm font-bold text-cvs-blue uppercase tracking-wide">
                   Latest Treatment
                 </span>
               </div>
               
-              <div className="flex items-center gap-2 text-emerald-800 mb-3">
+              <div className="flex items-center gap-2 text-gray-900 mb-3">
                 <Calendar size={16} />
                 <span className="font-semibold">
                   {format(new Date(treatments[0].created_date), 'EEEE, MMMM d, yyyy')}
                 </span>
-                <span className="text-emerald-600 text-sm">
+                <span className="text-gray-500 text-sm">
                   ({Math.floor((new Date() - new Date(treatments[0].created_date)) / (1000 * 60 * 60 * 24))} days ago)
                 </span>
               </div>
@@ -247,7 +246,7 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
                   {treatments[0].treatment_types.map((type) => (
                     <Badge 
                       key={type}
-                      className="bg-emerald-600 text-white"
+                      className="bg-cvs-blue text-white"
                     >
                       {type}
                     </Badge>
@@ -256,8 +255,8 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
               )}
 
               {treatments[0].notes && (
-                <div className="bg-white rounded-xl p-4 border border-emerald-200">
-                  <p className="text-stone-700 text-sm whitespace-pre-wrap">
+                <div className="bg-white rounded-xl p-4 border border-blue-200">
+                  <p className="text-gray-700 text-sm whitespace-pre-wrap">
                     {treatments[0].notes}
                   </p>
                 </div>
@@ -270,15 +269,15 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
                       key={i}
                       src={url}
                       alt={`Treatment photo ${i + 1}`}
-                      className="w-20 h-20 object-cover rounded-xl border-2 border-emerald-200"
+                      className="w-20 h-20 object-cover rounded-xl border-2 border-blue-200"
                     />
                   ))}
                 </div>
               )}
 
               {treatments[0].follow_up_date && (
-                <div className="mt-3 pt-3 border-t border-emerald-200">
-                  <div className="flex items-center gap-2 text-sm text-emerald-700">
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <div className="flex items-center gap-2 text-sm text-cvs-blue">
                     <Clock size={14} />
                     <span>Follow-up: {format(new Date(treatments[0].follow_up_date), 'MMM d, yyyy')}</span>
                   </div>
@@ -289,27 +288,27 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
             {/* Treatment Timeline */}
             {treatments.length > 1 && (
               <>
-                <div className="flex items-center gap-2 text-sm font-semibold text-stone-600 pt-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 pt-2">
                   <Clock size={16} />
                   <span>Previous Treatments</span>
                 </div>
                 
                 <div className="relative pl-6 space-y-4">
                   {/* Timeline line */}
-                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-stone-200" />
+                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200" />
                   
                   {treatments.slice(1).map((treatment, idx) => (
                     <div key={treatment.id} className="relative">
                       {/* Timeline dot */}
-                      <div className="absolute -left-6 top-3 w-4 h-4 rounded-full bg-stone-300 border-4 border-white" />
+                      <div className="absolute -left-6 top-3 w-4 h-4 rounded-full bg-gray-300 border-4 border-white" />
                       
-                      <div className="bg-stone-50 rounded-xl p-4 border border-stone-200">
-                        <div className="flex items-center gap-2 text-stone-600 text-sm mb-2">
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
                           <Calendar size={14} />
                           <span className="font-medium">
                             {format(new Date(treatment.created_date), 'MMM d, yyyy')}
                           </span>
-                          <span className="text-stone-400">
+                          <span className="text-gray-400">
                             ({Math.floor((new Date() - new Date(treatment.created_date)) / (1000 * 60 * 60 * 24))} days ago)
                           </span>
                         </div>
@@ -320,7 +319,7 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
                               <Badge 
                                 key={type}
                                 variant="secondary"
-                                className="bg-stone-200 text-stone-700 text-xs"
+                                className="bg-gray-200 text-gray-700 text-xs"
                               >
                                 {type}
                               </Badge>
@@ -329,7 +328,7 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
                         )}
 
                         {treatment.notes && (
-                          <p className="text-stone-600 text-sm line-clamp-2">
+                          <p className="text-gray-600 text-sm line-clamp-2">
                             {treatment.notes}
                           </p>
                         )}
@@ -345,7 +344,7 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
                               />
                             ))}
                             {treatment.photo_urls.length > 3 && (
-                              <div className="w-14 h-14 bg-stone-200 rounded-lg flex items-center justify-center text-stone-500 text-xs">
+                              <div className="w-14 h-14 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-xs">
                                 +{treatment.photo_urls.length - 3}
                               </div>
                             )}

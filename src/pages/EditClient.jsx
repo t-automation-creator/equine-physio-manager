@@ -64,7 +64,7 @@ export default function EditClient() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-cvs-blue" />
       </div>
     );
   }
@@ -77,17 +77,17 @@ export default function EditClient() {
       />
 
       <div className="space-y-6">
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <div className="space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="space-y-5">
             <div>
               <Label className="mb-2 block">Name *</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Client name"
-                  className="pl-10 rounded-xl h-12"
+                  className="pl-12"
                 />
               </div>
             </div>
@@ -95,13 +95,13 @@ export default function EditClient() {
             <div>
               <Label className="mb-2 block">Phone</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Phone number"
-                  className="pl-10 rounded-xl h-12"
+                  className="pl-12"
                 />
               </div>
             </div>
@@ -109,13 +109,13 @@ export default function EditClient() {
             <div>
               <Label className="mb-2 block">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email address"
-                  className="pl-10 rounded-xl h-12"
+                  className="pl-12"
                 />
               </div>
             </div>
@@ -125,26 +125,28 @@ export default function EditClient() {
         <Button 
           onClick={handleSubmit}
           disabled={!name || updateMutation.isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
+          className="w-full"
+          size="lg"
         >
           {updateMutation.isPending ? (
-            <Loader2 size={20} className="animate-spin mr-2" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <Check size={20} className="mr-2" />
+            <Check size={20} />
           )}
           Save Changes
         </Button>
 
         <Button 
-          variant="outline"
+          variant="destructive"
           onClick={handleDelete}
           disabled={deleteMutation.isPending}
-          className="w-full rounded-xl h-12 text-red-600 border-red-200 hover:bg-red-50"
+          className="w-full"
+          size="lg"
         >
           {deleteMutation.isPending ? (
-            <Loader2 size={18} className="animate-spin mr-2" />
+            <Loader2 size={18} className="animate-spin" />
           ) : (
-            <Trash2 size={18} className="mr-2" />
+            <Trash2 size={18} />
           )}
           Delete Client
         </Button>
