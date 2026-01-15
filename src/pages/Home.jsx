@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
-import { MapPin, Play, FileText } from 'lucide-react';
+import { MapPin, Play, FileText, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddressPrompt from '../components/AddressPrompt';
 
@@ -113,20 +113,19 @@ export default function Home() {
   };
 
   // Show full-page loading state until initial data is ready
-  // This prevents the flash of "No appointments today" before data loads
   if (loadingAppts || loadingUser) {
     return (
       <div className="pb-6">
         <div className="mb-6">
-          <div className="h-9 w-24 bg-stone-200 rounded-lg animate-pulse mb-2" />
-          <div className="h-6 w-40 bg-stone-100 rounded-lg animate-pulse" />
+          <div className="h-9 w-32 bg-gray-200 rounded-lg animate-pulse mb-2" />
+          <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse" />
         </div>
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border-2 border-stone-100 p-6 animate-pulse">
-              <div className="h-6 w-32 bg-stone-200 rounded mb-3" />
-              <div className="h-4 w-24 bg-stone-100 rounded mb-4" />
-              <div className="h-12 w-full bg-stone-100 rounded-xl" />
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse">
+              <div className="h-6 w-32 bg-gray-200 rounded mb-3" />
+              <div className="h-4 w-24 bg-gray-100 rounded mb-4" />
+              <div className="h-12 w-full bg-gray-100 rounded-full" />
             </div>
           ))}
         </div>
@@ -136,30 +135,75 @@ export default function Home() {
 
   return (
     <div className="pb-6">
+      {/* Header Section */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-stone-800 mb-1">Today</h1>
-        <p className="text-stone-500 text-lg">{format(new Date(), 'EEEE, MMMM d')}</p>
+        <p className="text-gray-500 text-sm font-medium mb-1">{format(new Date(), 'EEEE, MMMM d')}</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          What can we help you<br />find, {user?.full_name?.split(' ')[0] || 'there'}?
+        </h1>
       </div>
 
       {showAddressPrompt && !user?.home_address && <AddressPrompt user={user} onDismiss={() => setShowAddressPrompt(false)} />}
 
+      {/* Quick Actions */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
+        <div className="space-y-1">
+          <Link 
+            to={createPageUrl('Appointments')}
+            className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <Clock size={20} className="text-gray-600" />
+              </div>
+              <span className="font-medium text-gray-900">View all appointments</span>
+            </div>
+            <ChevronRight size={20} className="text-gray-400" />
+          </Link>
+          <Link 
+            to={createPageUrl('Clients')}
+            className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <FileText size={20} className="text-gray-600" />
+              </div>
+              <span className="font-medium text-gray-900">Manage clients</span>
+            </div>
+            <ChevronRight size={20} className="text-gray-400" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Today's Appointments Section */}
+      <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h2>
+
       {appointments.length === 0 ? (
-        <div className="text-center py-16 text-stone-500">
-          <p className="text-lg">No appointments today</p>
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="font-bold text-gray-900 text-lg mb-2">No appointments today</h3>
+          <p className="text-gray-500 mb-6">Your schedule is clear for today</p>
+          <Link to={createPageUrl('NewAppointment')}>
+            <Button>Schedule Appointment</Button>
+          </Link>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {Object.entries(appointmentsByYard).map(([yardId, yardAppts]) => {
             const yard = getYard(yardId);
             return (
               <div key={yardId}>
                 {yard && (
-                  <div className="flex items-center gap-2 mb-4">
-                    <MapPin size={20} className="text-emerald-600" />
-                    <h2 className="text-xl font-bold text-stone-800">{yard.name}</h2>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-cvs-green/10 rounded-lg flex items-center justify-center">
+                      <MapPin size={16} className="text-cvs-green" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">{yard.name}</h3>
                   </div>
                 )}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {yardAppts.map((appt) => {
                     const client = getClient(appt.client_id);
                     const apptHorses = getHorses(appt.horse_ids);
@@ -169,27 +213,40 @@ export default function Home() {
                     return (
                       <div 
                         key={appt.id}
-                        className="bg-white rounded-2xl border-2 border-stone-200 p-6"
+                        className="bg-white rounded-2xl border border-gray-200 overflow-hidden"
                       >
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-xl font-bold text-stone-800">{client?.name}</h3>
-                            <p className="text-stone-500 text-lg mt-1">{appt.time}</p>
+                        {/* Card Header */}
+                        <div className="p-5 border-b border-gray-100">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="text-lg font-bold text-gray-900">{client?.name}</h4>
+                              <p className="text-gray-500 flex items-center gap-1 mt-1">
+                                <Clock size={14} />
+                                {appt.time}
+                              </p>
+                            </div>
+                            {treatmentsComplete && (
+                              <div className="flex items-center gap-1 text-cvs-green bg-cvs-green-light px-3 py-1 rounded-full text-sm font-medium">
+                                <CheckCircle2 size={14} />
+                                Complete
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        {/* Horses */}
-                        <div className="space-y-3 mb-6">
+                        {/* Horses List */}
+                        <div className="px-5 py-3 bg-gray-50">
                           {apptHorses.map((horse) => {
                             const status = getHorseStatus(appt.id, horse.id);
-                            const statusColor = status === 'completed' ? 'text-emerald-600' : 'text-stone-400';
-                            
                             return (
-                              <div key={horse.id} className="flex items-center justify-between">
-                                <span className="text-lg text-stone-700">{horse.name}</span>
-                                <span className={`text-sm font-medium ${statusColor}`}>
+                              <div key={horse.id} className="flex items-center justify-between py-2">
+                                <span className="font-medium text-gray-700">{horse.name}</span>
+                                <span className={`text-sm font-medium ${
+                                  status === 'completed' ? 'text-cvs-green' : 
+                                  status === 'in_progress' ? 'text-cvs-blue' : 'text-gray-400'
+                                }`}>
                                   {status === 'completed' ? '✓ Done' : 
-                                   status === 'in_progress' ? 'In progress' : 'Not started'}
+                                   status === 'in_progress' ? 'In progress' : 'Pending'}
                                 </span>
                               </div>
                             );
@@ -197,7 +254,7 @@ export default function Home() {
                         </div>
 
                         {/* Actions */}
-                        <div className="space-y-3">
+                        <div className="p-5 space-y-3">
                           {apptHorses.map((horse) => {
                             const status = getHorseStatus(appt.id, horse.id);
                             if (status === 'completed') return null;
@@ -207,9 +264,9 @@ export default function Home() {
                                 key={horse.id}
                                 to={createPageUrl(`TreatmentEntry?appointmentId=${appt.id}&horseId=${horse.id}`)}
                               >
-                                <Button className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center justify-center gap-2">
+                                <Button className="w-full" size="lg">
                                   <Play size={18} className="fill-white" />
-                                  <span className="font-semibold">Start: {horse.name}</span>
+                                  Start Treatment: {horse.name}
                                 </Button>
                               </Link>
                             );
@@ -217,7 +274,7 @@ export default function Home() {
 
                           {treatmentsComplete && !invoice && (
                             <Link to={createPageUrl(`CreateInvoice?appointmentId=${appt.id}`)}>
-                              <Button className="w-full h-12 bg-stone-800 hover:bg-stone-900 rounded-xl flex items-center justify-center gap-2 font-semibold">
+                              <Button variant="primary" className="w-full" size="lg">
                                 <FileText size={18} />
                                 Create Invoice
                               </Button>
@@ -226,8 +283,8 @@ export default function Home() {
 
                           {invoice && (
                             <Link to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}>
-                              <Button variant="outline" className="w-full h-10 rounded-xl border-2 flex items-center justify-center gap-2 font-medium">
-                                <FileText size={16} />
+                              <Button variant="outline" className="w-full" size="lg">
+                                <FileText size={18} />
                                 View Invoice
                               </Button>
                             </Link>

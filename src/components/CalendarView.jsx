@@ -71,27 +71,27 @@ export default function CalendarView({ appointments = [], onDayClick }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6">
+    <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6">
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={handlePrevMonth}
-          className="flex items-center justify-center w-11 h-11 rounded-xl bg-stone-100 hover:bg-stone-200 transition-colors active:scale-95"
+          className="flex items-center justify-center w-11 h-11 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors active:scale-95"
           aria-label="Previous month"
         >
-          <ChevronLeft size={20} className="text-stone-700" />
+          <ChevronLeft size={20} className="text-gray-700" />
         </button>
 
-        <h2 className="text-lg sm:text-xl font-semibold text-stone-800">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900">
           {format(currentMonth, 'MMMM yyyy')}
         </h2>
 
         <button
           onClick={handleNextMonth}
-          className="flex items-center justify-center w-11 h-11 rounded-xl bg-stone-100 hover:bg-stone-200 transition-colors active:scale-95"
+          className="flex items-center justify-center w-11 h-11 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors active:scale-95"
           aria-label="Next month"
         >
-          <ChevronRight size={20} className="text-stone-700" />
+          <ChevronRight size={20} className="text-gray-700" />
         </button>
       </div>
 
@@ -100,7 +100,7 @@ export default function CalendarView({ appointments = [], onDayClick }) {
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
           <div
             key={day}
-            className="text-center text-xs sm:text-sm font-medium text-stone-500 py-2"
+            className="text-center text-xs sm:text-sm font-semibold text-gray-500 py-2"
           >
             {day}
           </div>
@@ -123,15 +123,15 @@ export default function CalendarView({ appointments = [], onDayClick }) {
               className={`
                 relative aspect-square min-h-[44px] rounded-xl flex flex-col items-center justify-center
                 transition-all duration-200
-                ${isCurrentMonth ? 'text-stone-800' : 'text-stone-400'}
-                ${isTodayDate && isCurrentMonth ? 'bg-emerald-50 border-2 border-emerald-600 font-semibold' : ''}
-                ${!isTodayDate && isCurrentMonth ? 'hover:bg-stone-50' : ''}
+                ${isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}
+                ${isTodayDate && isCurrentMonth ? 'bg-cvs-red/10 border-2 border-cvs-red font-bold' : ''}
+                ${!isTodayDate && isCurrentMonth ? 'hover:bg-gray-50' : ''}
                 ${hasAppointments && !isTodayDate ? 'cursor-pointer active:scale-95' : ''}
                 ${!hasAppointments ? 'cursor-default' : ''}
               `}
             >
               {/* Day Number */}
-              <span className={`text-sm sm:text-base ${isTodayDate ? 'text-emerald-600' : ''}`}>
+              <span className={`text-sm sm:text-base ${isTodayDate ? 'text-cvs-red' : ''}`}>
                 {format(day, 'd')}
               </span>
 
@@ -141,10 +141,10 @@ export default function CalendarView({ appointments = [], onDayClick }) {
                   absolute bottom-1 left-1/2 transform -translate-x-1/2
                   min-w-[20px] h-5 px-1.5 rounded-full
                   flex items-center justify-center
-                  text-[10px] sm:text-xs font-medium
+                  text-[10px] sm:text-xs font-semibold
                   ${isTodayDate 
-                    ? 'bg-emerald-600 text-white' 
-                    : 'bg-emerald-100 text-emerald-700'
+                    ? 'bg-cvs-red text-white' 
+                    : 'bg-cvs-blue/10 text-cvs-blue'
                   }
                 `}>
                   {dayAppointments.length}
@@ -156,16 +156,16 @@ export default function CalendarView({ appointments = [], onDayClick }) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-stone-200">
+      <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-gray-200">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded border-2 border-emerald-600 bg-emerald-50"></div>
-          <span className="text-xs sm:text-sm text-stone-600">Today</span>
+          <div className="w-4 h-4 rounded border-2 border-cvs-red bg-cvs-red/10"></div>
+          <span className="text-xs sm:text-sm text-gray-600">Today</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-emerald-100 flex items-center justify-center">
-            <span className="text-[8px] font-medium text-emerald-700">1</span>
+          <div className="w-4 h-4 rounded bg-cvs-blue/10 flex items-center justify-center">
+            <span className="text-[8px] font-semibold text-cvs-blue">1</span>
           </div>
-          <span className="text-xs sm:text-sm text-stone-600">Has Appointments</span>
+          <span className="text-xs sm:text-sm text-gray-600">Has Appointments</span>
         </div>
       </div>
     </div>

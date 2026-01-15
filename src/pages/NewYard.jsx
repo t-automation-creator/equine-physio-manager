@@ -36,17 +36,17 @@ export default function NewYard() {
       />
 
       <div className="space-y-6">
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <div className="space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="space-y-5">
             <div>
               <Label className="mb-2 block">Name *</Label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Yard name"
-                  className="pl-10 rounded-xl h-12"
+                  className="pl-12"
                 />
               </div>
             </div>
@@ -54,12 +54,12 @@ export default function NewYard() {
             <div>
               <Label className="mb-2 block">Address</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 text-stone-400" size={18} />
+                <MapPin className="absolute left-4 top-4 text-gray-400" size={18} />
                 <Textarea
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Full address"
-                  className="pl-10 rounded-xl min-h-[80px]"
+                  className="pl-12 min-h-[100px] rounded-lg border-gray-200 focus:border-cvs-blue focus:ring-cvs-blue"
                 />
               </div>
             </div>
@@ -70,7 +70,7 @@ export default function NewYard() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any notes about this yard..."
-                className="rounded-xl"
+                className="min-h-[100px] rounded-lg border-gray-200 focus:border-cvs-blue focus:ring-cvs-blue"
               />
             </div>
           </div>
@@ -79,12 +79,13 @@ export default function NewYard() {
         <Button 
           onClick={handleSubmit}
           disabled={!name || createMutation.isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 font-semibold"
+          className="w-full"
+          size="lg"
         >
           {createMutation.isPending ? (
-            <Loader2 size={20} className="animate-spin mr-2" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <Check size={20} className="mr-2" />
+            <Check size={20} />
           )}
           Add Yard
         </Button>

@@ -42,9 +42,9 @@ export default function Yards() {
         title="Yards"
         action={
           <Link to={createPageUrl('NewYard')}>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-5">
-              <Plus size={20} className="mr-2" />
-              Add
+            <Button size="lg">
+              <Plus size={20} />
+              Add Yard
             </Button>
           </Link>
         }
@@ -52,19 +52,19 @@ export default function Yards() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search yards..."
-          className="pl-12 h-12 rounded-xl border-stone-200"
+          className="pl-12"
         />
       </div>
 
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white rounded-2xl h-24 animate-pulse" />
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 h-24 animate-pulse" />
           ))}
         </div>
       ) : filteredYards.length === 0 ? (
@@ -77,8 +77,8 @@ export default function Yards() {
           }
           action={!search && (
             <Link to={createPageUrl('NewYard')}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-6">
-                <Plus size={20} className="mr-2" />
+              <Button size="lg">
+                <Plus size={20} />
                 Add Yard
               </Button>
             </Link>
@@ -90,22 +90,22 @@ export default function Yards() {
             <Link
               key={yard.id}
               to={createPageUrl(`YardDetail?id=${yard.id}`)}
-              className="block bg-white rounded-2xl border border-stone-200 p-4 hover:shadow-md transition-shadow"
+              className="block bg-white rounded-2xl border border-gray-200 p-4 hover:shadow-card-hover transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-stone-800 mb-1">{yard.name}</h3>
+                  <h3 className="font-bold text-gray-900 mb-1">{yard.name}</h3>
                   {yard.address && (
-                    <div className="flex items-start gap-1.5 text-sm text-stone-500">
+                    <div className="flex items-start gap-1.5 text-sm text-gray-500">
                       <MapPin size={14} className="mt-0.5 flex-shrink-0" />
                       <span>{yard.address}</span>
                     </div>
                   )}
-                  <p className="text-sm text-emerald-600 mt-2">
+                  <p className="text-sm text-cvs-blue font-medium mt-2">
                     {getHorseCount(yard.id)} horse{getHorseCount(yard.id) !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <ChevronRight size={20} className="text-stone-400" />
+                <ChevronRight size={20} className="text-gray-400" />
               </div>
             </Link>
           ))}

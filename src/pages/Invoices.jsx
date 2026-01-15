@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 import { FileText, ChevronRight } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -43,43 +42,49 @@ export default function Invoices() {
     paid: invoices.filter(i => i.status === 'paid').length,
   };
 
+  const filterTabs = [
+    { value: 'all', label: 'All' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'sent', label: 'Sent' },
+    { value: 'paid', label: 'Paid' },
+  ];
+
   return (
     <div className="pb-6">
       <PageHeader title="Invoices" />
 
-      <Tabs value={filter} onValueChange={setFilter} className="mb-6">
-        <TabsList className="w-full bg-stone-100 p-1 rounded-xl">
-          <TabsTrigger 
-            value="all" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white text-sm"
+      {/* Filter Tabs - CVS Style Pill Buttons */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {filterTabs.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setFilter(tab.value)}
+            className={`
+              px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-2
+              ${filter === tab.value 
+                ? 'bg-cvs-blue text-white' 
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }
+            `}
           >
-            All ({totalsByStatus.all})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="draft" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white text-sm"
-          >
-            Draft ({totalsByStatus.draft})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="sent" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white text-sm"
-          >
-            Sent ({totalsByStatus.sent})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="paid" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white text-sm"
-          >
-            Paid ({totalsByStatus.paid})
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            {tab.label}
+            <span className={`
+              text-xs px-2 py-0.5 rounded-full
+              ${filter === tab.value 
+                ? 'bg-white/20 text-white' 
+                : 'bg-gray-100 text-gray-500'
+              }
+            `}>
+              {totalsByStatus[tab.value]}
+            </span>
+          </button>
+        ))}
+      </div>
 
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white rounded-2xl h-24 animate-pulse" />
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 h-24 animate-pulse" />
           ))}
         </div>
       ) : filteredInvoices.length === 0 ? (
@@ -99,26 +104,26 @@ export default function Invoices() {
               <Link
                 key={invoice.id}
                 to={createPageUrl(`InvoiceDetail?id=${invoice.id}`)}
-                className="block bg-white rounded-2xl border border-stone-200 p-4 hover:shadow-md transition-shadow"
+                className="block bg-white rounded-2xl border border-gray-200 p-4 hover:shadow-card-hover transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-stone-800">
+                      <h3 className="font-bold text-gray-900">
                         {invoice.invoice_number || 'Draft Invoice'}
                       </h3>
                       <StatusBadge status={invoice.status} />
                     </div>
-                    <p className="text-stone-600">{client?.name || 'Unknown Client'}</p>
-                    <p className="text-sm text-stone-500">
+                    <p className="text-gray-700 font-medium">{client?.name || 'Unknown Client'}</p>
+                    <p className="text-sm text-gray-500">
                       {format(new Date(invoice.created_date), 'MMM d, yyyy')}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-stone-800">
+                    <span className="text-xl font-bold text-gray-900">
                       £{invoice.total_amount?.toFixed(2)}
                     </span>
-                    <ChevronRight size={20} className="text-stone-400" />
+                    <ChevronRight size={20} className="text-gray-400" />
                   </div>
                 </div>
               </Link>

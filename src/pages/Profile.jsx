@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MapPin, User as UserIcon, Mail, Loader2, Save } from 'lucide-react';
+import { MapPin, User as UserIcon, Mail, Loader2, Save, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,7 +36,7 @@ export default function Profile() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-cvs-blue" />
       </div>
     );
   }
@@ -49,69 +49,71 @@ export default function Profile() {
       />
 
       <div className="space-y-4">
-        {/* User Info */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <h3 className="font-semibold text-stone-800 mb-4">Account Details</h3>
-          <div className="space-y-4">
-            <div>
-              <Label className="mb-2 flex items-center gap-2 text-stone-600">
-                <UserIcon size={16} />
-                Full Name
-              </Label>
-              <Input
-                value={user?.full_name || ''}
-                disabled
-                className="rounded-xl bg-stone-50"
-              />
+        {/* User Info Card */}
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="p-5 border-b border-gray-100">
+            <h3 className="font-bold text-gray-900">Account Details</h3>
+          </div>
+          <div className="divide-y divide-gray-100">
+            <div className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <UserIcon size={18} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Full Name</p>
+                  <p className="font-medium text-gray-900">{user?.full_name || 'Not set'}</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label className="mb-2 flex items-center gap-2 text-stone-600">
-                <Mail size={16} />
-                Email
-              </Label>
-              <Input
-                value={user?.email || ''}
-                disabled
-                className="rounded-xl bg-stone-50"
-              />
+            <div className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Mail size={18} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="font-medium text-gray-900">{user?.email || 'Not set'}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Home Address */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="font-semibold text-stone-800 flex items-center gap-2">
-                <MapPin size={18} className="text-emerald-600" />
-                Home/Business Address
-              </h3>
-              <p className="text-sm text-stone-500 mt-1">
-                Used as your starting point for route planning and travel calculations
-              </p>
+        {/* Home Address Card */}
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-cvs-green/10 rounded-lg flex items-center justify-center">
+                <MapPin size={18} className="text-cvs-green" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Home/Business Address</h3>
+                <p className="text-sm text-gray-500">Used for route planning and travel calculations</p>
+              </div>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="p-5 space-y-4">
             <div>
-              <Label className="mb-2 block">Address</Label>
+              <Label className="mb-2 block text-gray-700 font-medium">Address</Label>
               <Input
                 value={homeAddress}
                 onChange={(e) => setHomeAddress(e.target.value)}
                 placeholder="Enter your home or business address..."
-                className="rounded-xl"
               />
             </div>
 
             <Button
               onClick={handleSave}
               disabled={updateMutation.isPending || !homeAddress}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12"
+              className="w-full"
+              size="lg"
             >
               {updateMutation.isPending ? (
-                <Loader2 size={18} className="animate-spin mr-2" />
+                <Loader2 size={18} className="animate-spin" />
               ) : (
-                <Save size={18} className="mr-2" />
+                <Save size={18} />
               )}
               Save Changes
             </Button>

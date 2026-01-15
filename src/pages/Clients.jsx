@@ -41,8 +41,8 @@ export default function Clients() {
       <div className="pb-6">
         <PageHeader title="Clients" />
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-red-800 mb-2">Failed to load clients</h3>
+          <AlertCircle className="w-12 h-12 text-cvs-red mx-auto mb-3" />
+          <h3 className="font-bold text-red-800 mb-2">Failed to load clients</h3>
           <p className="text-red-600 text-sm">{error?.message || 'An unexpected error occurred'}</p>
         </div>
       </div>
@@ -55,9 +55,9 @@ export default function Clients() {
         title="Clients"
         action={
           <Link to={createPageUrl('NewClient')}>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-5">
-              <Plus size={20} className="mr-2" />
-              Add
+            <Button size="lg">
+              <Plus size={20} />
+              Add Client
             </Button>
           </Link>
         }
@@ -65,19 +65,19 @@ export default function Clients() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search clients..."
-          className="pl-12 h-12 rounded-xl border-stone-200"
+          className="pl-12"
         />
       </div>
 
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white rounded-2xl h-24 animate-pulse" />
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 h-24 animate-pulse" />
           ))}
         </div>
       ) : filteredClients.length === 0 ? (
@@ -90,8 +90,8 @@ export default function Clients() {
           }
           action={!search && (
             <Link to={createPageUrl('NewClient')}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-6">
-                <Plus size={20} className="mr-2" />
+              <Button size="lg">
+                <Plus size={20} />
                 Add Client
               </Button>
             </Link>
@@ -103,12 +103,12 @@ export default function Clients() {
             <Link
               key={client.id}
               to={createPageUrl(`ClientDetail?id=${client.id}`)}
-              className="block bg-white rounded-2xl border border-stone-200 p-4 hover:shadow-md transition-shadow"
+              className="block bg-white rounded-2xl border border-gray-200 p-4 hover:shadow-card-hover transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-stone-800 mb-1">{client.name}</h3>
-                  <div className="flex flex-wrap gap-3 text-sm text-stone-500">
+                  <h3 className="font-bold text-gray-900 mb-1">{client.name}</h3>
+                  <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     {client.phone && (
                       <span className="flex items-center gap-1">
                         <Phone size={14} />
@@ -122,11 +122,11 @@ export default function Clients() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-emerald-600 mt-2">
+                  <p className="text-sm text-cvs-blue font-medium mt-2">
                     {getHorseCount(client.id)} horse{getHorseCount(client.id) !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <ChevronRight size={20} className="text-stone-400" />
+                <ChevronRight size={20} className="text-gray-400" />
               </div>
             </Link>
           ))}

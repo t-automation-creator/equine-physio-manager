@@ -105,65 +105,54 @@ export default function Appointments() {
         title="Appointments"
         action={
           <Link to={createPageUrl('NewAppointment')}>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-5">
-              <Plus size={20} className="mr-2" />
+            <Button size="lg">
+              <Plus size={20} />
               New
             </Button>
           </Link>
         }
       />
 
-      {/* View Toggle */}
+      {/* View Toggle - Pill Style */}
       <div className="flex gap-2 mb-4">
         <Button
           variant={viewMode === 'list' ? 'default' : 'outline'}
           onClick={() => handleViewChange('list')}
-          className={`flex-1 rounded-xl h-12 ${
-            viewMode === 'list' 
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-          }`}
+          className="flex-1"
+          size="lg"
         >
-          <List size={20} className="mr-2" />
+          <List size={20} />
           List
         </Button>
         <Button
           variant={viewMode === 'calendar' ? 'default' : 'outline'}
           onClick={() => handleViewChange('calendar')}
-          className={`flex-1 rounded-xl h-12 ${
-            viewMode === 'calendar' 
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-          }`}
+          className="flex-1"
+          size="lg"
         >
-          <CalendarDays size={20} className="mr-2" />
+          <CalendarDays size={20} />
           Calendar
         </Button>
       </div>
 
-      {/* Filter Tabs */}
-      <Tabs value={filter} onValueChange={handleFilterChange} className="mb-6">
-        <TabsList className="w-full bg-stone-100 p-1 rounded-xl">
-          <TabsTrigger 
-            value="today" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white"
+      {/* Filter Tabs - CVS Style */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {['today', 'upcoming', 'past'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => handleFilterChange(tab)}
+            className={`
+              px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all
+              ${filter === tab 
+                ? 'bg-cvs-blue text-white' 
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }
+            `}
           >
-            Today
-          </TabsTrigger>
-          <TabsTrigger 
-            value="upcoming" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white"
-          >
-            Upcoming
-          </TabsTrigger>
-          <TabsTrigger 
-            value="past" 
-            className="flex-1 rounded-lg data-[state=active]:bg-white"
-          >
-            Past
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
 
       {/* Calendar View */}
       {viewMode === 'calendar' && (
@@ -173,13 +162,13 @@ export default function Appointments() {
             onDayClick={handleDayClick}
           />
           {selectedDate && (
-            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-              <p className="text-sm text-emerald-800 font-medium">
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+              <p className="text-sm text-blue-800 font-medium">
                 Showing appointments for {format(selectedDate, 'EEEE, MMMM d, yyyy')}
               </p>
               <button
                 onClick={() => setSelectedDate(null)}
-                className="text-xs text-emerald-600 hover:text-emerald-700 underline mt-1"
+                className="text-sm text-cvs-blue hover:underline mt-1 font-medium"
               >
                 Clear filter
               </button>
@@ -192,7 +181,7 @@ export default function Appointments() {
       {loadingAppts ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl h-40 animate-pulse" />
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 h-40 animate-pulse" />
           ))}
         </div>
       ) : filteredAppointments.length === 0 ? (
@@ -212,8 +201,8 @@ export default function Appointments() {
           }
           action={
             <Link to={createPageUrl('NewAppointment')}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-xl h-12 px-6">
-                <Plus size={20} className="mr-2" />
+              <Button size="lg">
+                <Plus size={20} />
                 New Appointment
               </Button>
             </Link>
@@ -223,7 +212,7 @@ export default function Appointments() {
         <div className="space-y-6">
           {sortedDates.map((date) => (
             <div key={date}>
-              <h2 className="font-semibold text-stone-600 mb-3">
+              <h2 className="font-bold text-gray-600 mb-3 text-sm uppercase tracking-wide">
                 {isToday(parseISO(date)) 
                   ? 'Today' 
                   : format(parseISO(date), 'EEEE, MMMM d')}

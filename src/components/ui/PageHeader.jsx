@@ -9,7 +9,7 @@ export default function PageHeader({ title, subtitle, backTo, action }) {
       {backTo && (
         <Link 
           to={createPageUrl(backTo)}
-          className="inline-flex items-center gap-1 text-stone-500 hover:text-stone-700 mb-3 -ml-1"
+          className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 mb-4 -ml-1 transition-colors"
         >
           <ChevronLeft size={20} />
           <span className="text-sm font-medium">Back</span>
@@ -17,9 +17,9 @@ export default function PageHeader({ title, subtitle, backTo, action }) {
       )}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-stone-800">{title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           {subtitle && (
-            <p className="text-stone-500 mt-1">{subtitle}</p>
+            <p className="text-gray-500 mt-1">{subtitle}</p>
           )}
         </div>
         {action}
