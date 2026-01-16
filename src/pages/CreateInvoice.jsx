@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format, addDays } from 'date-fns';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import InvoiceTemplate from '../components/InvoiceTemplate';
 import { 
   Plus, 
   Trash2, 
@@ -138,7 +142,62 @@ export default function CreateInvoice() {
 
   const createMutation = useMutation({
     mutationFn: async (invoiceData) => {
-      return base44.entities.Invoice.create(invoiceData);
+      const newInvoice = await base44.entities.Invoice.create(invoiceData);
+      
+      // Generate PDF and attach to client
+      try {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.width = '210mm';
+        document.body.appendChild(tempDiv);
+        
+        const root = ReactDOM.createRoot(tempDiv);
+        root.render(
+          <InvoiceTemplate
+            invoice={newInvoice}
+            client={client}
+            settings={settings}
+          />
+        );
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const canvas = await html2canvas(tempDiv.firstChild, {
+          scale: 2,
+          useCORS: true,
+          logging: false
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        const pdfBlob = pdf.output('blob');
+        
+        document.body.removeChild(tempDiv);
+        
+        // Upload PDF
+        const pdfFile = new File([pdfBlob], `Invoice-${newInvoice.invoice_number}.pdf`, { type: 'application/pdf' });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: pdfFile });
+        
+        // Attach to client
+        const updatedFiles = [
+          ...(client.files || []),
+          {
+            name: `Invoice ${newInvoice.invoice_number}.pdf`,
+            url: file_url,
+            uploaded_date: new Date().toISOString()
+          }
+        ];
+        await base44.entities.Client.update(client.id, { files: updatedFiles });
+      } catch (error) {
+        console.error('Failed to generate PDF:', error);
+      }
+      
+      return newInvoice;
     },
     onSuccess: (data) => {
       navigate(createPageUrl(`InvoiceDetail?id=${data.id}`));
