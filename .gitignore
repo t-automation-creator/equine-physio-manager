@@ -30,6 +30,6 @@ dist-ssr
 .env
 
 # Temporary files
-tmpclaude-*.cwd
+tmpclaude-*
 *.tmp
 *.temp
