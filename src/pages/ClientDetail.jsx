@@ -10,7 +10,9 @@ import {
   Plus,
   Edit,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
@@ -156,6 +158,39 @@ export default function ClientDetail() {
           )}
         </div>
       </div>
+
+      {/* Files Card */}
+      {client.files && client.files.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
+          <div className="p-5 border-b border-gray-100">
+            <h3 className="font-bold text-gray-900">Files</h3>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {client.files.map((file, index) => (
+              <a
+                key={index}
+                href={file.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-10 h-10 bg-cvs-blue/10 rounded-lg flex items-center justify-center">
+                  <FileText size={18} className="text-cvs-blue" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{file.name}</p>
+                  {file.uploaded_date && (
+                    <p className="text-sm text-gray-500">
+                      {new Date(file.uploaded_date).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+                <Download size={18} className="text-gray-400" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Horses Card */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
