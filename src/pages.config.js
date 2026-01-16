@@ -21,6 +21,7 @@ import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
+import InviteUserSetup from './pages/InviteUserSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "YardDetail": YardDetail,
     "Yards": Yards,
     "index": index,
+    "InviteUserSetup": InviteUserSetup,
 }
 
 export const pagesConfig = {
