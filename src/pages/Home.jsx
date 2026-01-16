@@ -12,37 +12,68 @@ export default function Home() {
   const [showAddressPrompt, setShowAddressPrompt] = React.useState(true);
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  // Use optimized hooks for shared data
-  const { data: user, isLoading: loadingUser } = useUser();
+  // Fetch user data
+  const { data: user, isLoading: loadingUser } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+  });
 
-  // Fetch today's appointments with proper caching
+  // Fetch today's appointments
   const { data: appointments = [], isLoading: loadingAppts } = useQuery({
-    queryKey: queryKeys.appointments.byDate(today),
+    queryKey: ['appointments', today],
     queryFn: async () => {
       const response = await base44.functions.invoke('getMyData', { entity: 'Appointment', query: { date: today } });
       return response.data.data || [];
     },
     enabled: !!user,
-    ...CACHE_PRESETS.appointments,
   });
 
-  // Use shared hooks for reference data - these are cached globally
-  // so navigating to Clients page won't refetch
-  const { data: clients = [] } = useClients();
-  const { data: yards = [] } = useYards();
-  const { data: horses = [] } = useHorses();
-  const { data: invoices = [] } = useInvoices();
+  // Fetch reference data
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', { entity: 'Client', query: {} });
+      return response.data.data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: yards = [] } = useQuery({
+    queryKey: ['yards'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', { entity: 'Yard', query: {} });
+      return response.data.data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: horses = [] } = useQuery({
+    queryKey: ['horses'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return response.data.data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', { entity: 'Invoice', query: {} });
+      return response.data.data || [];
+    },
+    enabled: !!user,
+  });
 
   // Fetch treatments for today's appointments
   const { data: treatments = [] } = useQuery({
-    queryKey: queryKeys.treatments.byAppointment(today),
+    queryKey: ['treatments', today],
     queryFn: async () => {
       const response = await base44.functions.invoke('getMyData', { entity: 'Treatment', query: {} });
       const todayApptIds = appointments.map(a => a.id);
       return (response.data.data || []).filter(t => todayApptIds.includes(t.appointment_id));
     },
     enabled: appointments.length > 0 && !!user,
-    ...CACHE_PRESETS.treatments,
   });
 
   const getClient = (id) => clients.find(c => c.id === id);
