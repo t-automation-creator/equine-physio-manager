@@ -7,9 +7,6 @@ import { format } from 'date-fns';
 import { MapPin, Play, FileText, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddressPrompt from '../components/AddressPrompt';
-import { useUser, useClients, useHorses, useYards, useInvoices } from '@/hooks/useData';
-import { queryKeys } from '@/lib/query-keys';
-import { CACHE_PRESETS } from '@/lib/query-client';
 
 export default function Home() {
   const [showAddressPrompt, setShowAddressPrompt] = React.useState(true);
