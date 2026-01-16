@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import {
@@ -12,7 +12,9 @@ import {
   Loader2,
   AlertCircle,
   FileText,
-  Download
+  Download,
+  Upload,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
@@ -21,6 +23,8 @@ import EmptyState from '../components/ui/EmptyState';
 export default function ClientDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const clientId = urlParams.get('id');
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
 
   console.log('ClientDetail mounted, clientId:', clientId);
 
@@ -57,6 +61,40 @@ export default function ClientDetail() {
   });
 
   const getYard = (id) => yards.find(y => y.id === id);
+
+  const updateClientMutation = useMutation({
+    mutationFn: (data) => base44.entities.Client.update(clientId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['client', clientId]);
+    },
+  });
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const newFile = {
+        name: file.name,
+        url: file_url,
+        uploaded_date: new Date().toISOString()
+      };
+      const updatedFiles = [...(client.files || []), newFile];
+      await updateClientMutation.mutateAsync({ ...client, files: updatedFiles });
+    } catch (error) {
+      alert('Failed to upload file');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeFile = async (index) => {
+    if (!confirm('Are you sure you want to remove this file?')) return;
+    const updatedFiles = client.files.filter((_, i) => i !== index);
+    await updateClientMutation.mutateAsync({ ...client, files: updatedFiles });
+  };
 
   const isLoading = clientLoading || horsesLoading;
 
@@ -160,18 +198,29 @@ export default function ClientDetail() {
       </div>
 
       {/* Files Card */}
-      {client.files && client.files.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
-          <div className="p-5 border-b border-gray-100">
-            <h3 className="font-bold text-gray-900">Files</h3>
-          </div>
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="font-bold text-gray-900">Files</h3>
+          <label>
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              className="hidden"
+              disabled={uploading}
+            />
+            <Button size="sm" disabled={uploading} asChild>
+              <span>
+                {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                Upload
+              </span>
+            </Button>
+          </label>
+        </div>
+        {client.files && client.files.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {client.files.map((file, index) => (
-              <a
+              <div
                 key={index}
-                href={file.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="w-10 h-10 bg-cvs-blue/10 rounded-lg flex items-center justify-center">
@@ -185,12 +234,33 @@ export default function ClientDetail() {
                     </p>
                   )}
                 </div>
-                <Download size={18} className="text-gray-400" />
-              </a>
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cvs-blue hover:text-cvs-blue-dark"
+                >
+                  <Download size={18} />
+                </a>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 font-medium">No files uploaded yet</p>
+            <p className="text-gray-400 text-sm mt-1">Upload files to store client documents</p>
+          </div>
+        )}
+      </div>
 
       {/* Horses Card */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">

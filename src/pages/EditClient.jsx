@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { Check, Loader2, User, Phone, Mail, Trash2, Upload, X, FileText } from 'lucide-react';
+import { Check, Loader2, User, Phone, Mail, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,8 +18,6 @@ export default function EditClient() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
 
   const { data: client, isLoading } = useQuery({
     queryKey: ['client', clientId],
@@ -35,7 +33,6 @@ export default function EditClient() {
       setName(client.name || '');
       setPhone(client.phone || '');
       setEmail(client.email || '');
-      setFiles(client.files || []);
     }
   }, [client]);
 
@@ -55,31 +52,7 @@ export default function EditClient() {
   });
 
   const handleSubmit = () => {
-    updateMutation.mutate({ name, phone, email, files });
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const newFile = {
-        name: file.name,
-        url: file_url,
-        uploaded_date: new Date().toISOString()
-      };
-      setFiles([...files, newFile]);
-    } catch (error) {
-      alert('Failed to upload file');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeFile = (index) => {
-    setFiles(files.filter((_, i) => i !== index));
+    updateMutation.mutate({ name, phone, email });
   };
 
   const handleDelete = () => {
@@ -144,50 +117,6 @@ export default function EditClient() {
                   placeholder="Email address"
                   className="pl-12"
                 />
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-2 block">Files</Label>
-              <div className="space-y-3">
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <FileText size={18} className="text-gray-400" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                    </div>
-                    <button
-                      onClick={() => removeFile(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                ))}
-                <label>
-                  <input
-                    type="file"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    disabled={uploading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    disabled={uploading}
-                    asChild
-                  >
-                    <span>
-                      {uploading ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Upload size={18} />
-                      )}
-                      Upload File
-                    </span>
-                  </Button>
-                </label>
               </div>
             </div>
           </div>
