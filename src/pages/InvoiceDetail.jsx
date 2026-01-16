@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { 
   Mail, 
   Link as LinkIcon, 
@@ -137,11 +139,62 @@ export default function InvoiceDetail() {
 
     setSending(true);
     
-    const itemsList = invoice.line_items?.map(
-      item => `• ${item.description}: £${item.total.toFixed(2)}`
-    ).join('\n') || '';
+    try {
+      // Generate PDF
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '210mm';
+      document.body.appendChild(tempDiv);
+      
+      const root = ReactDOM.createRoot(tempDiv);
+      root.render(
+        <InvoiceTemplate
+          invoice={invoice}
+          client={client}
+          settings={settings}
+        />
+      );
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(tempDiv.firstChild, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const pdfBlob = pdf.output('blob');
+      
+      document.body.removeChild(tempDiv);
+      
+      // Upload PDF
+      const pdfFile = new File([pdfBlob], `Invoice-${invoice.invoice_number}.pdf`, { type: 'application/pdf' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: pdfFile });
+      
+      // Attach to client
+      const updatedFiles = [
+        ...(client.files || []),
+        {
+          name: `Invoice ${invoice.invoice_number}.pdf`,
+          url: file_url,
+          uploaded_date: new Date().toISOString()
+        }
+      ];
+      await base44.entities.Client.update(client.id, { files: updatedFiles });
+      
+      // Send email
+      const itemsList = invoice.line_items?.map(
+        item => `• ${item.description}: £${item.total.toFixed(2)}`
+      ).join('\n') || '';
 
-    const emailBody = `
+      const emailBody = `
 Dear ${client.name},
 
 Please find below your invoice from Annie McAndrew Vet Physio.
@@ -168,16 +221,21 @@ Thank you for your business.
 
 Best regards,
 Annie McAndrew Vet Physio
-    `.trim();
+      `.trim();
 
-    await base44.integrations.Core.SendEmail({
-      to: client.email,
-      subject: `Invoice ${invoice.invoice_number} - Annie McAndrew Vet Physio`,
-      body: emailBody,
-    });
+      await base44.integrations.Core.SendEmail({
+        to: client.email,
+        subject: `Invoice ${invoice.invoice_number} - Annie McAndrew Vet Physio`,
+        body: emailBody,
+      });
 
-    await updateMutation.mutateAsync({ status: 'sent' });
-    setSending(false);
+      await updateMutation.mutateAsync({ status: 'sent' });
+      queryClient.invalidateQueries(['client', client.id]);
+    } catch (error) {
+      alert('Failed to send invoice: ' + error.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleCopyLink = () => {
