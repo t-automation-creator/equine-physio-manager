@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
     }
 
-    const { action, email, role, userEmail, clients, yards } = await req.json();
+    const { action, email, role, userEmail, clients, yards, horses } = await req.json();
 
     if (action === 'invite') {
       // Step 1: Invite the user
@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
       const createdData = {
         clients: [],
         yards: [],
+        horses: [],
       };
 
       // Create clients with created_by set to the invited user's email
@@ -58,6 +59,36 @@ Deno.serve(async (req) => {
               created_by: userEmail,
             });
             createdData.yards.push(created);
+          }
+        }
+      }
+
+      // Create horses with created_by set to the invited user's email
+      if (horses && horses.length > 0) {
+        for (const horse of horses) {
+          if (horse.name) {
+            // Find owner by name
+            const owner = createdData.clients.find(c => c.name === horse.owner_name);
+            // Find yard by name
+            const yard = createdData.yards.find(y => y.name === horse.yard_name);
+
+            const horseData = {
+              name: horse.name,
+              age: horse.age ? parseInt(horse.age) : undefined,
+              discipline: horse.discipline,
+              medical_notes: horse.medical_notes,
+              owner_id: owner?.id,
+              yard_id: yard?.id,
+              created_by: userEmail
+            };
+
+            // Remove undefined fields
+            Object.keys(horseData).forEach(key => 
+              horseData[key] === undefined && delete horseData[key]
+            );
+
+            const created = await base44.asServiceRole.entities.Horse.create(horseData);
+            createdData.horses.push(created);
           }
         }
       }

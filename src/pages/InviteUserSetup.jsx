@@ -55,6 +55,7 @@ export default function InviteUserSetup() {
         userEmail: invitedEmail,
         clients: clients.filter(c => c.name.trim()),
         yards: yards.filter(y => y.name.trim()),
+        horses: horses.filter(h => h.name.trim()),
       });
       return response.data;
     },
@@ -67,6 +68,7 @@ export default function InviteUserSetup() {
       setInvitedEmail('');
       setClients([{ name: '', phone: '', email: '' }]);
       setYards([{ name: '', address: '' }]);
+      setHorses([{ name: '', age: '', discipline: '', owner_name: '', yard_name: '', medical_notes: '' }]);
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to create data');
