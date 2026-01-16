@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { navItems, profileNavItem } from '@/config/navigation';
+import LogoutButton from '@/components/LogoutButton';
 
 export default function MobileMenu({ isOpen, onClose }) {
   const location = useLocation();
@@ -102,7 +103,7 @@ export default function MobileMenu({ isOpen, onClose }) {
           })}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 space-y-2">
           <Link
             to={profileNavItem.to}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive(profileNavItem.to) ? 'bg-red-50 text-cvs-red' : 'text-gray-700 hover:bg-gray-100'}`}
@@ -111,6 +112,7 @@ export default function MobileMenu({ isOpen, onClose }) {
             <profileNavItem.icon size={20} className={isActive(profileNavItem.to) ? 'text-cvs-red' : 'text-gray-500'} aria-hidden="true" />
             <span className="font-medium">{profileNavItem.label}</span>
           </Link>
+          <LogoutButton className="w-full justify-start text-gray-700 hover:bg-gray-100" />
         </div>
       </nav>
     </>
