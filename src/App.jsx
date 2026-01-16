@@ -10,7 +10,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { User } from '@/api/entities';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useCurrentUser } from '@/hooks/useCurrentUser.jsx';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
