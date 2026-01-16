@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus, Check, ChevronRight, Loader2 } from 'lucide-react';
+import { UserPlus, Check, ChevronRight, Loader2, Upload, FileSpreadsheet } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import toast from 'react-hot-toast';
 
@@ -21,6 +21,7 @@ export default function InviteUserSetup() {
   // Step 2: Data creation
   const [clients, setClients] = useState([{ name: '', phone: '', email: '' }]);
   const [yards, setYards] = useState([{ name: '', address: '' }]);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -97,6 +98,63 @@ export default function InviteUserSetup() {
 
   const removeYard = (index) => {
     setYards(yards.filter((_, i) => i !== index));
+  };
+
+  const handleFileUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      // Upload file
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Define schema based on type
+      const schema = type === 'clients'
+        ? {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                phone: { type: 'string' },
+                email: { type: 'string' }
+              }
+            }
+          }
+        : {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                address: { type: 'string' }
+              }
+            }
+          };
+
+      // Extract data
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: schema
+      });
+
+      if (result.status === 'success' && result.output) {
+        if (type === 'clients') {
+          setClients(result.output);
+          toast.success(`Loaded ${result.output.length} clients`);
+        } else {
+          setYards(result.output);
+          toast.success(`Loaded ${result.output.length} yards`);
+        }
+      } else {
+        toast.error(result.details || 'Failed to parse file');
+      }
+    } catch (error) {
+      toast.error('Failed to upload file');
+    } finally {
+      setUploadingFile(false);
+    }
   };
 
   if (user?.role !== 'admin') {
@@ -182,15 +240,40 @@ export default function InviteUserSetup() {
           </div>
 
           <div className="bg-white rounded-2xl border-2 border-gray-200 p-6">
-            <h2 className="text-lg font-bold mb-4">Step 2: Add Their Data</h2>
+            <h2 className="text-lg font-bold mb-2">Step 2: Add Their Data</h2>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+              <FileSpreadsheet size={18} className="text-cvs-blue mt-0.5" />
+              <div className="text-sm text-blue-900">
+                <p className="font-semibold mb-1">CSV Format:</p>
+                <p className="text-blue-700">Clients: name, phone, email</p>
+                <p className="text-blue-700">Yards: name, address</p>
+              </div>
+            </div>
 
             {/* Clients */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <Label className="text-base font-bold">Clients</Label>
-                <Button onClick={addClient} size="sm" variant="outline">
-                  Add Client
-                </Button>
+                <div className="flex gap-2">
+                  <label>
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={(e) => handleFileUpload(e, 'clients')}
+                      className="hidden"
+                      disabled={uploadingFile}
+                    />
+                    <Button size="sm" variant="outline" asChild disabled={uploadingFile}>
+                      <span>
+                        {uploadingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                        Upload CSV
+                      </span>
+                    </Button>
+                  </label>
+                  <Button onClick={addClient} size="sm" variant="outline">
+                    Add Client
+                  </Button>
+                </div>
               </div>
               <div className="space-y-3">
                 {clients.map((client, index) => (
@@ -229,9 +312,26 @@ export default function InviteUserSetup() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <Label className="text-base font-bold">Yards</Label>
-                <Button onClick={addYard} size="sm" variant="outline">
-                  Add Yard
-                </Button>
+                <div className="flex gap-2">
+                  <label>
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={(e) => handleFileUpload(e, 'yards')}
+                      className="hidden"
+                      disabled={uploadingFile}
+                    />
+                    <Button size="sm" variant="outline" asChild disabled={uploadingFile}>
+                      <span>
+                        {uploadingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                        Upload CSV
+                      </span>
+                    </Button>
+                  </label>
+                  <Button onClick={addYard} size="sm" variant="outline">
+                    Add Yard
+                  </Button>
+                </div>
               </div>
               <div className="space-y-3">
                 {yards.map((yard, index) => (
