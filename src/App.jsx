@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as HotToaster } from 'react-hot-toast'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -9,8 +9,6 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import { User } from '@/api/entities';
-import { useCurrentUser } from '@/hooks/useCurrentUser.jsx';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -67,33 +65,11 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, isInitialLoad, authError, navigateToLogin, isAuthenticated } = useAuth();
-  const { user: currentUser, loading: userLoading } = useCurrentUser();
-  const [authChecked, setAuthChecked] = useState(false);
-
-  // Check authentication on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authenticated = await User.isAuthenticated();
-        if (!authenticated) {
-          User.redirectToLogin();
-        }
-        setAuthChecked(true);
-      } catch (err) {
-        console.error('Auth check failed:', err);
-        User.redirectToLogin();
-      }
-    };
-
-    if (!isInitialLoad && !isLoadingAuth) {
-      checkAuth();
-    }
-  }, [isInitialLoad, isLoadingAuth]);
+  const { isLoadingAuth, isLoadingPublicSettings, isInitialLoad, authError, navigateToLogin } = useAuth();
 
   // Show loading spinner on initial load to prevent flickering
   // The isInitialLoad flag stays true until all auth checks complete
-  if (isInitialLoad || userLoading || !authChecked) {
+  if (isInitialLoad) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-50">
         <div className="w-8 h-8 border-4 border-gray-200 border-t-cvs-blue rounded-full animate-spin"></div>
@@ -114,16 +90,6 @@ const AuthenticatedApp = () => {
         </div>
       );
     }
-  }
-
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    User.redirectToLogin();
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-cvs-blue rounded-full animate-spin"></div>
-      </div>
-    );
   }
 
   // Render the main app
