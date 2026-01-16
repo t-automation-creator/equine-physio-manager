@@ -21,6 +21,7 @@ export default function InviteUserSetup() {
   // Step 2: Data creation
   const [clients, setClients] = useState([{ name: '', phone: '', email: '' }]);
   const [yards, setYards] = useState([{ name: '', address: '' }]);
+  const [horses, setHorses] = useState([{ name: '', age: '', discipline: '', owner_name: '', yard_name: '', medical_notes: '' }]);
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const { data: user } = useQuery({
@@ -100,6 +101,20 @@ export default function InviteUserSetup() {
     setYards(yards.filter((_, i) => i !== index));
   };
 
+  const addHorse = () => {
+    setHorses([...horses, { name: '', age: '', discipline: '', owner_name: '', yard_name: '', medical_notes: '' }]);
+  };
+
+  const updateHorse = (index, field, value) => {
+    const updated = [...horses];
+    updated[index][field] = value;
+    setHorses(updated);
+  };
+
+  const removeHorse = (index) => {
+    setHorses(horses.filter((_, i) => i !== index));
+  };
+
   const handleFileUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -122,13 +137,28 @@ export default function InviteUserSetup() {
               }
             }
           }
-        : {
+        : type === 'yards'
+        ? {
             type: 'array',
             items: {
               type: 'object',
               properties: {
                 name: { type: 'string' },
                 address: { type: 'string' }
+              }
+            }
+          }
+        : {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                age: { type: 'string' },
+                discipline: { type: 'string' },
+                owner_name: { type: 'string' },
+                yard_name: { type: 'string' },
+                medical_notes: { type: 'string' }
               }
             }
           };
@@ -143,9 +173,12 @@ export default function InviteUserSetup() {
         if (type === 'clients') {
           setClients(result.output);
           toast.success(`Loaded ${result.output.length} clients`);
-        } else {
+        } else if (type === 'yards') {
           setYards(result.output);
           toast.success(`Loaded ${result.output.length} yards`);
+        } else {
+          setHorses(result.output);
+          toast.success(`Loaded ${result.output.length} horses`);
         }
       } else {
         toast.error(result.details || 'Failed to parse file');
@@ -247,6 +280,7 @@ export default function InviteUserSetup() {
                 <p className="font-semibold mb-1">CSV Format:</p>
                 <p className="text-blue-700">Clients: name, phone, email</p>
                 <p className="text-blue-700">Yards: name, address</p>
+                <p className="text-blue-700">Horses: name, age, discipline, owner_name, yard_name, medical_notes</p>
               </div>
             </div>
 
