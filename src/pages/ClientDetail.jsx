@@ -197,8 +197,59 @@ export default function ClientDetail() {
         </div>
       </div>
 
-      {/* Files Card */}
+      {/* Horses Card */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="font-bold text-gray-900">Horses</h3>
+          <Link to={createPageUrl(`NewHorse?ownerId=${clientId}`)}>
+            <Button size="sm">
+              <Plus size={16} />
+              Add
+            </Button>
+          </Link>
+        </div>
+
+        {horsesError ? (
+          <div className="p-8 text-center">
+            <AlertCircle className="w-12 h-12 text-cvs-red mx-auto mb-3" />
+            <p className="text-red-600">Error loading horses</p>
+          </div>
+        ) : horses.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 font-medium">No horses registered yet</p>
+            <p className="text-gray-400 text-sm mt-1">Add a horse to get started</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {horses.map((horse) => {
+              const yard = getYard(horse.yard_id);
+              return (
+                <Link
+                  key={horse.id}
+                  to={createPageUrl(`HorseDetail?id=${horse.id}`)}
+                  className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{horse.name}</h4>
+                    <div className="text-sm text-gray-500 mt-0.5">
+                      {horse.discipline && <span>{horse.discipline}</span>}
+                      {horse.discipline && yard && <span> • </span>}
+                      {yard && <span>{yard.name}</span>}
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-gray-400" />
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Files Card */}
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <h3 className="font-bold text-gray-900">Files</h3>
           <label>
@@ -258,57 +309,6 @@ export default function ClientDetail() {
             </div>
             <p className="text-gray-500 font-medium">No files uploaded yet</p>
             <p className="text-gray-400 text-sm mt-1">Upload files to store client documents</p>
-          </div>
-        )}
-      </div>
-
-      {/* Horses Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-gray-900">Horses</h3>
-          <Link to={createPageUrl(`NewHorse?ownerId=${clientId}`)}>
-            <Button size="sm">
-              <Plus size={16} />
-              Add
-            </Button>
-          </Link>
-        </div>
-
-        {horsesError ? (
-          <div className="p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-cvs-red mx-auto mb-3" />
-            <p className="text-red-600">Error loading horses</p>
-          </div>
-        ) : horses.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-8 h-8 text-gray-400" />
-            </div>
-            <p className="text-gray-500 font-medium">No horses registered yet</p>
-            <p className="text-gray-400 text-sm mt-1">Add a horse to get started</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {horses.map((horse) => {
-              const yard = getYard(horse.yard_id);
-              return (
-                <Link
-                  key={horse.id}
-                  to={createPageUrl(`HorseDetail?id=${horse.id}`)}
-                  className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{horse.name}</h4>
-                    <div className="text-sm text-gray-500 mt-0.5">
-                      {horse.discipline && <span>{horse.discipline}</span>}
-                      {horse.discipline && yard && <span> • </span>}
-                      {yard && <span>{yard.name}</span>}
-                    </div>
-                  </div>
-                  <ChevronRight size={18} className="text-gray-400" />
-                </Link>
-              );
-            })}
           </div>
         )}
       </div>
