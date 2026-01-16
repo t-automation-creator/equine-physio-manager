@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { navItems, profileNavItem } from '@/config/navigation';
+import LogoutButton from '@/components/LogoutButton';
 
 export default function DesktopSidebar() {
   const location = useLocation();
@@ -39,7 +40,7 @@ export default function DesktopSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
+      <div className="p-4 border-t border-gray-100 space-y-2">
         <Link
           to={profileNavItem.to}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive(profileNavItem.to) ? 'bg-red-50 text-cvs-red font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}
@@ -48,6 +49,7 @@ export default function DesktopSidebar() {
           <profileNavItem.icon size={20} className={isActive(profileNavItem.to) ? 'text-cvs-red' : 'text-gray-500'} aria-hidden="true" />
           <span className="font-medium">{profileNavItem.label}</span>
         </Link>
+        <LogoutButton className="w-full justify-start text-gray-600 hover:bg-gray-50" />
       </div>
     </aside>
   );
