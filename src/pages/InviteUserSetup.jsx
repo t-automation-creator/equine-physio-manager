@@ -397,6 +397,98 @@ export default function InviteUserSetup() {
               </div>
             </div>
 
+            {/* Horses */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-base font-bold">Horses</Label>
+                <div className="flex gap-2">
+                  <label>
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={(e) => handleFileUpload(e, 'horses')}
+                      className="hidden"
+                      disabled={uploadingFile}
+                    />
+                    <Button size="sm" variant="outline" asChild disabled={uploadingFile}>
+                      <span>
+                        {uploadingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                        Upload CSV
+                      </span>
+                    </Button>
+                  </label>
+                  <Button onClick={addHorse} size="sm" variant="outline">
+                    Add Horse
+                  </Button>
+                </div>
+              </div>
+              {horses.map((horse, index) => (
+                <div key={index} className="border border-gray-200 rounded-xl p-4 mb-3">
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <Label className="text-sm">Horse Name</Label>
+                      <Input
+                        value={horse.name}
+                        onChange={(e) => updateHorse(index, 'name', e.target.value)}
+                        placeholder="e.g., Thunder"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Age</Label>
+                      <Input
+                        value={horse.age}
+                        onChange={(e) => updateHorse(index, 'age', e.target.value)}
+                        placeholder="e.g., 8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Discipline</Label>
+                      <Input
+                        value={horse.discipline}
+                        onChange={(e) => updateHorse(index, 'discipline', e.target.value)}
+                        placeholder="e.g., Dressage"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Owner Name</Label>
+                      <Input
+                        value={horse.owner_name}
+                        onChange={(e) => updateHorse(index, 'owner_name', e.target.value)}
+                        placeholder="Match client name"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Yard Name</Label>
+                      <Input
+                        value={horse.yard_name}
+                        onChange={(e) => updateHorse(index, 'yard_name', e.target.value)}
+                        placeholder="Match yard name"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <Label className="text-sm">Medical Notes</Label>
+                    <Textarea
+                      value={horse.medical_notes}
+                      onChange={(e) => updateHorse(index, 'medical_notes', e.target.value)}
+                      placeholder="Any medical history..."
+                      rows={2}
+                    />
+                  </div>
+                  {horses.length > 1 && (
+                    <Button
+                      onClick={() => removeHorse(index)}
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-600"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+
             <div className="flex gap-3">
               <Button
                 onClick={() => {
