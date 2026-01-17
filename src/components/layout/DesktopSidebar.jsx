@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Heart } from 'lucide-react';
-import { navItems, profileNavItem, settingsNavItem } from '@/config/navigation';
+import { navItems, profileNavItem, settingsNavItem } from '@/components/config/navigation';
 import LogoutButton from '@/components/LogoutButton';
 
 export default function DesktopSidebar() {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { navItems, profileNavItem, settingsNavItem } from '@/config/navigation';
+import { navItems, profileNavItem, settingsNavItem } from '@/components/config/navigation';
 import LogoutButton from '@/components/LogoutButton';
 
 export default function MobileMenu({ isOpen, onClose }) {
