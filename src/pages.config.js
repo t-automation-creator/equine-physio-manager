@@ -17,12 +17,13 @@ import NewHorse from './pages/NewHorse';
 import NewYard from './pages/NewYard';
 import Payments from './pages/Payments';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import TreatmentEntry from './pages/TreatmentEntry';
 import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
-import Settings from './pages/Settings';
+import Horses from './pages/Horses';
 import __Layout from './Layout.jsx';
 
 
@@ -46,12 +47,13 @@ export const PAGES = {
     "NewYard": NewYard,
     "Payments": Payments,
     "Profile": Profile,
+    "Settings": Settings,
     "TreatmentEntry": TreatmentEntry,
     "TreatmentSummary": TreatmentSummary,
     "YardDetail": YardDetail,
     "Yards": Yards,
     "index": index,
-    "Settings": Settings,
+    "Horses": Horses,
 }
 
 export const pagesConfig = {
