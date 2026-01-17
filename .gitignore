@@ -33,3 +33,8 @@ dist-ssr
 tmpclaude-*.cwd
 *.tmp
 *.temp
+
+# Local data import files (contains PII)
+dataimport/
+.vs/
+src/data/

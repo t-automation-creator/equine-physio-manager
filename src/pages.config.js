@@ -25,11 +25,13 @@ import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
+import AnnieImport from './pages/AnnieImport';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminImport": AdminImport,
+    "AnnieImport": AnnieImport,
     "AppointmentDetail": AppointmentDetail,
     "Appointments": Appointments,
     "ClientDetail": ClientDetail,
