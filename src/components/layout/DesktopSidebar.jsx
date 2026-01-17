@@ -1,8 +1,21 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart } from 'lucide-react';
-import { navItems, profileNavItem, settingsNavItem } from '@/components/config/navigation';
+import { Heart, Calendar, Users, MapPin, FileText, CreditCard, User, Home, Settings } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
+import { createPageUrl } from '../../utils';
+
+const navItems = [
+  { label: 'Home', to: createPageUrl('Home'), icon: Home },
+  { label: 'Appointments', to: createPageUrl('Appointments'), icon: Calendar },
+  { label: 'Clients', to: createPageUrl('Clients'), icon: Users },
+  { label: 'Horses', to: createPageUrl('Horses'), icon: Heart },
+  { label: 'Yards', to: createPageUrl('Yards'), icon: MapPin },
+  { label: 'Invoices', to: createPageUrl('Invoices'), icon: FileText },
+  { label: 'Payments', to: createPageUrl('Payments'), icon: CreditCard },
+];
+
+const profileNavItem = { label: 'Profile', to: createPageUrl('Profile'), icon: User };
+const settingsNavItem = { label: 'Settings', to: createPageUrl('Settings'), icon: Settings };
 
 export default function DesktopSidebar() {
   const location = useLocation();
