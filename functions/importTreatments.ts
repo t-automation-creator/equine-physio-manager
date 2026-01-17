@@ -190,7 +190,8 @@ Deno.serve(async (req) => {
         treatment_types: treatment.treatment_types || [],
         photo_urls: [],
         status: treatment.status === 'completed' ? 'completed' : 'not_started',
-        follow_up_date: null
+        follow_up_date: null,
+        created_by: 'annievetphysio@gmail.com'
       };
 
       treatmentsToImport.push(treatmentData);
