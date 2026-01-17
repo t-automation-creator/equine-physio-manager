@@ -1,4 +1,5 @@
 import AdminImport from './pages/AdminImport';
+import AnnieImport from './pages/AnnieImport';
 import AppointmentDetail from './pages/AppointmentDetail';
 import Appointments from './pages/Appointments';
 import ClientDetail from './pages/ClientDetail';
@@ -24,14 +25,13 @@ import TreatmentEntry from './pages/TreatmentEntry';
 import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
-import AnnieImport from './pages/AnnieImport';
 import index from './pages/index';
-import DeleteData from './pages/DeleteData';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminImport": AdminImport,
+    "AnnieImport": AnnieImport,
     "AppointmentDetail": AppointmentDetail,
     "Appointments": Appointments,
     "ClientDetail": ClientDetail,
@@ -57,9 +57,7 @@ export const PAGES = {
     "TreatmentSummary": TreatmentSummary,
     "YardDetail": YardDetail,
     "Yards": Yards,
-    "AnnieImport": AnnieImport,
     "index": index,
-    "DeleteData": DeleteData,
 }
 
 export const pagesConfig = {
