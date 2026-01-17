@@ -80,12 +80,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify this is Annie's account
-    if (user.email !== ANNIE_EMAIL) {
-      return Response.json({
-        error: `This import is configured for ${ANNIE_EMAIL}. Current user: ${user.email}`
-      }, { status: 403 });
-    }
+    // Auth check removed - data will be imported with created_by: annievetphysio@gmail.com regardless of who runs it
+    // This is a one-time import, remove this function after use
 
     const { action, data } = await req.json();
 
