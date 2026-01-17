@@ -6,7 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '../components/ui/PageHeader';
-import { Save, Settings as SettingsIcon, Upload, Palette, Building2, Image } from 'lucide-react';
+import { 
+  Save, 
+  Settings as SettingsIcon, 
+  Upload, 
+  Palette, 
+  Building2, 
+  Image,
+  Download,
+  FileJson,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle
+} from 'lucide-react';
 
 export default function Settings() {
   const queryClient = useQueryClient();
@@ -27,6 +42,14 @@ export default function Settings() {
     color_scheme: 'blue'
   });
   const [uploading, setUploading] = useState(false);
+  
+  // Import/Export state
+  const [importExpanded, setImportExpanded] = useState(false);
+  const [importData, setImportData] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState([]);
+  const [importError, setImportError] = useState(null);
+  const [importComplete, setImportComplete] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -103,6 +126,190 @@ export default function Settings() {
     }
   };
 
+  // Import functionality
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImportData(event.target.result);
+        setImportError(null);
+        setImportResults([]);
+        setImportComplete(false);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const runImport = async () => {
+    if (!importData) {
+      setImportError('Please upload or paste the import data first');
+      return;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(importData);
+    } catch (e) {
+      setImportError('Invalid JSON data');
+      return;
+    }
+
+    setImporting(true);
+    setImportError(null);
+    setImportResults([]);
+    setImportComplete(false);
+
+    const idMaps = {
+      clientIdMap: {},
+      horseIdMap: {},
+      appointmentTypeIdMap: {}
+    };
+
+    try {
+      // Step 1: Import Appointment Types
+      if (data.appointment_types?.length > 0) {
+        setImportResults(prev => [...prev, { step: 'Appointment Types', status: 'loading' }]);
+        const result = await base44.functions.invoke('importClinikoData', {
+          action: 'import_appointment_types',
+          data: data.appointment_types
+        });
+        idMaps.appointmentTypeIdMap = result.data.idMap || {};
+        setImportResults(prev => prev.map(r => 
+          r.step === 'Appointment Types' ? { ...r, status: 'success', count: result.data.imported } : r
+        ));
+      }
+
+      // Step 2: Import Clients
+      if (data.clients?.length > 0) {
+        setImportResults(prev => [...prev, { step: 'Clients', status: 'loading' }]);
+        const result = await base44.functions.invoke('importClinikoData', {
+          action: 'import_clients',
+          data: data.clients
+        });
+        idMaps.clientIdMap = result.data.idMap || {};
+        setImportResults(prev => prev.map(r => 
+          r.step === 'Clients' ? { ...r, status: 'success', count: result.data.imported } : r
+        ));
+      }
+
+      // Step 3: Import Horses
+      if (data.horses?.length > 0) {
+        setImportResults(prev => [...prev, { step: 'Horses', status: 'loading' }]);
+        const result = await base44.functions.invoke('importClinikoData', {
+          action: 'import_horses',
+          data: { horses: data.horses, clientIdMap: idMaps.clientIdMap }
+        });
+        idMaps.horseIdMap = result.data.idMap || {};
+        setImportResults(prev => prev.map(r => 
+          r.step === 'Horses' ? { ...r, status: 'success', count: result.data.imported } : r
+        ));
+      }
+
+      // Step 4: Import Appointments
+      if (data.appointments?.length > 0) {
+        setImportResults(prev => [...prev, { step: 'Appointments', status: 'loading' }]);
+        const result = await base44.functions.invoke('importClinikoData', {
+          action: 'import_appointments',
+          data: { 
+            appointments: data.appointments, 
+            clientIdMap: idMaps.clientIdMap, 
+            horseIdMap: idMaps.horseIdMap,
+            appointmentTypeIdMap: idMaps.appointmentTypeIdMap
+          }
+        });
+        setImportResults(prev => prev.map(r => 
+          r.step === 'Appointments' ? { ...r, status: 'success', count: result.data.imported } : r
+        ));
+      }
+
+      // Step 5: Import Treatments
+      if (data.treatments?.length > 0) {
+        setImportResults(prev => [...prev, { step: 'Treatments', status: 'loading' }]);
+        const result = await base44.functions.invoke('importClinikoData', {
+          action: 'import_treatments',
+          data: { treatments: data.treatments, horseIdMap: idMaps.horseIdMap }
+        });
+        setImportResults(prev => prev.map(r => 
+          r.step === 'Treatments' ? { ...r, status: 'success', count: result.data.imported } : r
+        ));
+      }
+
+      // Step 6: Import Settings (optional - only if user wants to override)
+      if (data.settings && !settings) {
+        setImportResults(prev => [...prev, { step: 'Settings', status: 'loading' }]);
+        await base44.functions.invoke('importClinikoData', {
+          action: 'import_settings',
+          data: data.settings
+        });
+        setImportResults(prev => prev.map(r => 
+          r.step === 'Settings' ? { ...r, status: 'success', count: 1 } : r
+        ));
+        queryClient.invalidateQueries(['settings']);
+      }
+
+      setImportComplete(true);
+      queryClient.invalidateQueries(['clients']);
+      queryClient.invalidateQueries(['horses']);
+      queryClient.invalidateQueries(['appointments']);
+      queryClient.invalidateQueries(['treatments']);
+
+    } catch (err) {
+      setImportError(err.message || 'Import failed');
+      setImportResults(prev => {
+        const lastLoading = prev.findIndex(r => r.status === 'loading');
+        if (lastLoading >= 0) {
+          return prev.map((r, i) => i === lastLoading ? { ...r, status: 'error', error: err.message } : r);
+        }
+        return prev;
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // Export functionality
+  const handleExport = async () => {
+    try {
+      const [clientsRes, horsesRes, appointmentsRes, treatmentsRes, appointmentTypesRes] = await Promise.all([
+        base44.functions.invoke('getMyData', { entity: 'Client', query: {} }),
+        base44.functions.invoke('getMyData', { entity: 'Horse', query: {} }),
+        base44.functions.invoke('getMyData', { entity: 'Appointment', query: {} }),
+        base44.functions.invoke('getMyData', { entity: 'Treatment', query: {} }),
+        base44.functions.invoke('getMyData', { entity: 'AppointmentType', query: {} }),
+      ]);
+
+      const exportData = {
+        clients: clientsRes.data.data || [],
+        horses: horsesRes.data.data || [],
+        appointments: appointmentsRes.data.data || [],
+        treatments: treatmentsRes.data.data || [],
+        appointment_types: appointmentTypesRes.data.data || [],
+        settings: settings || formData,
+        export_date: new Date().toISOString(),
+        summary: {
+          total_clients: clientsRes.data.data?.length || 0,
+          total_horses: horsesRes.data.data?.length || 0,
+          total_appointments: appointmentsRes.data.data?.length || 0,
+          total_treatments: treatmentsRes.data.data?.length || 0,
+          total_appointment_types: appointmentTypesRes.data.data?.length || 0,
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `physio_app_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to export data: ' + error.message);
+    }
+  };
+
   const colorSchemes = [
     { value: 'blue', label: 'Classic Blue', primary: '#0066cc', secondary: '#004999' },
     { value: 'green', label: 'Fresh Green', primary: '#059669', secondary: '#047857' },
@@ -124,6 +331,164 @@ export default function Settings() {
       />
 
       <div className="space-y-6">
+        {/* Import/Export Data Section */}
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <button
+            onClick={() => setImportExpanded(!importExpanded)}
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <FileJson size={20} className="text-purple-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-gray-900">Import / Export Data</h3>
+                <p className="text-sm text-gray-500">Import from Cliniko or backup your data</p>
+              </div>
+            </div>
+            {importExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </button>
+
+          {importExpanded && (
+            <div className="px-6 pb-6 border-t border-gray-100 pt-4 space-y-6">
+              {/* Import Section */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Upload size={18} />
+                  Import Data
+                </h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Import data from Cliniko or a previous backup. Upload a JSON file or paste the data below.
+                </p>
+
+                <div className="space-y-4">
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
+                      <FileJson size={24} className="text-gray-400" />
+                      <span className="text-gray-600 font-medium">
+                        {importData ? 'File loaded - Click to change' : 'Click to upload JSON file'}
+                      </span>
+                    </div>
+                  </label>
+
+                  <div className="text-center text-gray-400 text-sm">or paste JSON data</div>
+
+                  <Textarea
+                    value={importData}
+                    onChange={(e) => {
+                      setImportData(e.target.value);
+                      setImportError(null);
+                      setImportResults([]);
+                      setImportComplete(false);
+                    }}
+                    placeholder='Paste the contents of your import file here...'
+                    className="min-h-[120px] font-mono text-xs"
+                  />
+
+                  {/* Import Progress */}
+                  {importResults.length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                      {importResults.map((result, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          {result.status === 'loading' ? (
+                            <Loader2 size={16} className="animate-spin text-blue-600" />
+                          ) : result.status === 'success' ? (
+                            <CheckCircle size={16} className="text-green-600" />
+                          ) : (
+                            <XCircle size={16} className="text-red-600" />
+                          )}
+                          <span className="text-sm text-gray-700">
+                            {result.step}
+                            {result.count !== undefined && ` - ${result.count} records`}
+                            {result.error && ` - ${result.error}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Error Display */}
+                  {importError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+                      <XCircle className="text-red-600" size={20} />
+                      <span className="text-sm text-red-700">{importError}</span>
+                    </div>
+                  )}
+
+                  {/* Success Message */}
+                  {importComplete && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+                      <CheckCircle className="text-green-600" size={20} />
+                      <span className="text-sm text-green-700">Import completed successfully!</span>
+                    </div>
+                  )}
+
+                  <Button 
+                    onClick={runImport}
+                    disabled={!importData || importing}
+                    className="w-full"
+                    variant="default"
+                  >
+                    {importing ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={18} />
+                        Start Import
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-200" />
+
+              {/* Export Section */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Download size={18} />
+                  Export Data
+                </h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Download a backup of all your data including clients, horses, appointments, and treatments.
+                </p>
+
+                <Button 
+                  onClick={handleExport}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Download size={18} />
+                  Download Backup
+                </Button>
+              </div>
+
+              {/* Info Note */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertCircle className="text-blue-600 mt-0.5" size={18} />
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium">Import Notes:</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>All imported data will be assigned to your account</li>
+                    <li>Running import multiple times will create duplicate records</li>
+                    <li>Supported format: Cliniko export or app backup JSON</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Business Information */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-5">
