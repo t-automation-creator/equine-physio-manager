@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MapPin, User as UserIcon, Mail, Loader2, Save, ChevronRight, UserPlus } from 'lucide-react';
+import { MapPin, User as UserIcon, Mail, Loader2, Save, ChevronRight, UserPlus, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -119,6 +119,28 @@ export default function Profile() {
               )}
               Save Changes
             </Button>
+          </div>
+        </div>
+
+        {/* Import Data */}
+        <div className="bg-purple-50 rounded-2xl border-2 border-purple-200 overflow-hidden">
+          <div className="p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <Upload size={18} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Import Data</h3>
+                <p className="text-sm text-gray-600">Import data from Cliniko or other sources</p>
+              </div>
+            </div>
+            
+            <Link to={createPageUrl('AdminImport')}>
+              <Button variant="outline" className="w-full" size="lg">
+                Import Cliniko Data
+                <ChevronRight size={18} />
+              </Button>
+            </Link>
           </div>
         </div>
 
