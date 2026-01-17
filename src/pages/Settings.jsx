@@ -34,7 +34,6 @@ export default function Settings() {
     bank_sort_code: '60-83-71',
     bank_account_number: '58786706',
     business_name: 'Annie McAndrew Ltd',
-    business_address: 'Corner Barn, Case Lane, Hatton, Warwickshire',
     business_phone: '+44 7946854950',
     business_email: 'annievetphysio@gmail.com',
     business_registration: '15693468',
@@ -83,7 +82,6 @@ export default function Settings() {
         bank_sort_code: settings.bank_sort_code || '60-83-71',
         bank_account_number: settings.bank_account_number || '58786706',
         business_name: settings.business_name || 'Annie McAndrew Ltd',
-        business_address: settings.business_address || 'Corner Barn, Case Lane, Hatton, Warwickshire',
         business_phone: settings.business_phone || '+44 7946854950',
         business_email: settings.business_email || 'annievetphysio@gmail.com',
         business_registration: settings.business_registration || '15693468',
@@ -503,16 +501,6 @@ export default function Settings() {
                 value={formData.business_name}
                 onChange={(e) => setFormData({...formData, business_name: e.target.value})}
                 placeholder="e.g., Annie McAndrew Ltd"
-              />
-            </div>
-
-            <div>
-              <Label>Business Address</Label>
-              <Textarea
-                value={formData.business_address}
-                onChange={(e) => setFormData({...formData, business_address: e.target.value})}
-                placeholder="Full business address"
-                rows={2}
               />
             </div>
 

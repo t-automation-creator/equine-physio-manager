@@ -1,3 +1,4 @@
+import AdminImport from './pages/AdminImport';
 import AppointmentDetail from './pages/AppointmentDetail';
 import Appointments from './pages/Appointments';
 import ClientDetail from './pages/ClientDetail';
@@ -8,6 +9,7 @@ import EditHorse from './pages/EditHorse';
 import EditYard from './pages/EditYard';
 import Home from './pages/Home';
 import HorseDetail from './pages/HorseDetail';
+import Horses from './pages/Horses';
 import InviteUserSetup from './pages/InviteUserSetup';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Invoices from './pages/Invoices';
@@ -23,11 +25,11 @@ import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
-import Horses from './pages/Horses';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminImport": AdminImport,
     "AppointmentDetail": AppointmentDetail,
     "Appointments": Appointments,
     "ClientDetail": ClientDetail,
@@ -38,6 +40,7 @@ export const PAGES = {
     "EditYard": EditYard,
     "Home": Home,
     "HorseDetail": HorseDetail,
+    "Horses": Horses,
     "InviteUserSetup": InviteUserSetup,
     "InvoiceDetail": InvoiceDetail,
     "Invoices": Invoices,
@@ -53,7 +56,6 @@ export const PAGES = {
     "YardDetail": YardDetail,
     "Yards": Yards,
     "index": index,
-    "Horses": Horses,
 }
 
 export const pagesConfig = {
