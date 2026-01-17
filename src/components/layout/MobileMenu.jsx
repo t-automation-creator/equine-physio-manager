@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { navItems, profileNavItem } from '@/config/navigation';
+import { navItems, profileNavItem, settingsNavItem } from '@/config/navigation';
 import LogoutButton from '@/components/LogoutButton';
 
 export default function MobileMenu({ isOpen, onClose }) {
@@ -111,6 +111,14 @@ export default function MobileMenu({ isOpen, onClose }) {
           >
             <profileNavItem.icon size={20} className={isActive(profileNavItem.to) ? 'text-cvs-red' : 'text-gray-500'} aria-hidden="true" />
             <span className="font-medium">{profileNavItem.label}</span>
+          </Link>
+          <Link
+            to={settingsNavItem.to}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive(settingsNavItem.to) ? 'bg-red-50 text-cvs-red' : 'text-gray-700 hover:bg-gray-100'}`}
+            aria-current={isActive(settingsNavItem.to) ? 'page' : undefined}
+          >
+            <settingsNavItem.icon size={20} className={isActive(settingsNavItem.to) ? 'text-cvs-red' : 'text-gray-500'} aria-hidden="true" />
+            <span className="font-medium">{settingsNavItem.label}</span>
           </Link>
           <LogoutButton className="w-full justify-start text-gray-700 hover:bg-gray-100" />
         </div>
