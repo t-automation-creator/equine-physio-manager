@@ -26,6 +26,7 @@ export default function NewAppointment() {
   const [clientId, setClientId] = useState('');
   const [yardId, setYardId] = useState('');
   const [selectedHorses, setSelectedHorses] = useState([]);
+  const [appointmentTypeId, setAppointmentTypeId] = useState('');
   const [notes, setNotes] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrencePattern, setRecurrencePattern] = useState('weekly');
@@ -58,6 +59,15 @@ export default function NewAppointment() {
     queryKey: ['horses'],
     queryFn: async () => {
       const response = await base44.functions.invoke('getMyData', { entity: 'Horse', query: {} });
+      return response.data.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    },
+    enabled: !!user,
+  });
+
+  const { data: appointmentTypes = [] } = useQuery({
+    queryKey: ['appointmentTypes'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', { entity: 'AppointmentType', query: {} });
       return response.data.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     },
     enabled: !!user,
@@ -98,6 +108,7 @@ export default function NewAppointment() {
           client_id: clientId,
           yard_id: yardId || null,
           horse_ids: selectedHorses,
+          appointment_type_id: appointmentTypeId || null,
           notes,
           status: 'scheduled',
           is_recurring: true,
@@ -125,6 +136,7 @@ export default function NewAppointment() {
         client_id: clientId,
         yard_id: yardId || null,
         horse_ids: selectedHorses,
+        appointment_type_id: appointmentTypeId || null,
         notes,
         status: 'scheduled',
       });
@@ -142,6 +154,9 @@ export default function NewAppointment() {
       setYardId(clientHorses[0].yard_id);
     }
   };
+
+  // Get selected appointment type for display
+  const selectedAppointmentType = appointmentTypes.find(t => t.id === appointmentTypeId);
 
   return (
     <div className="pb-6">
@@ -181,6 +196,39 @@ export default function NewAppointment() {
             </div>
           </div>
         </div>
+
+        {/* Appointment Type */}
+        {appointmentTypes.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <Label className="text-base font-bold text-gray-900 mb-4 block">Appointment Type</Label>
+            <Select value={appointmentTypeId} onValueChange={setAppointmentTypeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {appointmentTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    <div className="flex items-center gap-2">
+                      {type.color && (
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: type.color }}
+                        />
+                      )}
+                      <span>{type.name}</span>
+                      {type.duration_in_minutes && (
+                        <span className="text-gray-400 text-sm">({type.duration_in_minutes} min)</span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedAppointmentType?.description && (
+              <p className="text-sm text-gray-500 mt-2">{selectedAppointmentType.description}</p>
+            )}
+          </div>
+        )}
 
         {/* Client */}
         <div className="bg-white rounded-2xl border border-gray-200 p-5">
@@ -247,9 +295,10 @@ export default function NewAppointment() {
                     />
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">{horse.name}</p>
-                      {horse.discipline && (
-                        <p className="text-sm text-gray-500">{horse.discipline}</p>
-                      )}
+                      <div className="flex gap-2 text-sm text-gray-500">
+                        {horse.sex && <span>{horse.sex}</span>}
+                        {horse.discipline && <span>• {horse.discipline}</span>}
+                      </div>
                     </div>
                   </button>
                 ))}

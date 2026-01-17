@@ -24,6 +24,12 @@ const DISCIPLINES = [
   'Other',
 ];
 
+const SEX_OPTIONS = [
+  'Male',
+  'Female',
+  'Gelding',
+];
+
 export default function EditHorse() {
   const urlParams = new URLSearchParams(window.location.search);
   const horseId = urlParams.get('id');
@@ -32,6 +38,7 @@ export default function EditHorse() {
   
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+  const [sex, setSex] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [ownerId, setOwnerId] = useState('');
   const [yardId, setYardId] = useState('');
@@ -75,6 +82,7 @@ export default function EditHorse() {
     if (horse) {
       setName(horse.name || '');
       setAge(horse.age?.toString() || '');
+      setSex(horse.sex || '');
       setDiscipline(horse.discipline || '');
       setOwnerId(horse.owner_id || '');
       setYardId(horse.yard_id || '');
@@ -112,6 +120,7 @@ export default function EditHorse() {
     updateMutation.mutate({
       name,
       age: age ? parseInt(age) : null,
+      sex,
       discipline,
       owner_id: ownerId,
       yard_id: yardId || null,
@@ -198,7 +207,7 @@ export default function EditHorse() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label className="mb-2 block">Age (years)</Label>
                 <Input
@@ -208,6 +217,20 @@ export default function EditHorse() {
                   onChange={(e) => setAge(e.target.value)}
                   placeholder="Age"
                 />
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Sex</Label>
+                <Select value={sex} onValueChange={setSex}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEX_OPTIONS.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

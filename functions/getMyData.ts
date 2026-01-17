@@ -40,6 +40,9 @@ Deno.serve(async (req) => {
       case 'Settings':
         data = await base44.asServiceRole.entities.Settings.filter(secureQuery);
         break;
+      case 'AppointmentType':
+        data = await base44.asServiceRole.entities.AppointmentType.filter(secureQuery);
+        break;
       default:
         return Response.json({ error: 'Invalid entity' }, { status: 400 });
     }

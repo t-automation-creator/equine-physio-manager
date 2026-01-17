@@ -24,6 +24,12 @@ const DISCIPLINES = [
   'Other',
 ];
 
+const SEX_OPTIONS = [
+  'Male',
+  'Female',
+  'Gelding',
+];
+
 export default function NewHorse() {
   const urlParams = new URLSearchParams(window.location.search);
   const preselectedOwnerId = urlParams.get('ownerId');
@@ -32,6 +38,7 @@ export default function NewHorse() {
   
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+  const [sex, setSex] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [ownerId, setOwnerId] = useState(preselectedOwnerId || '');
   const [yardId, setYardId] = useState(preselectedYardId || '');
@@ -83,6 +90,7 @@ export default function NewHorse() {
     createMutation.mutate({
       name,
       age: age ? parseInt(age) : null,
+      sex,
       discipline,
       owner_id: ownerId,
       yard_id: yardId || null,
@@ -155,7 +163,7 @@ export default function NewHorse() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label className="mb-2 block">Age (years)</Label>
                 <Input
@@ -165,6 +173,20 @@ export default function NewHorse() {
                   onChange={(e) => setAge(e.target.value)}
                   placeholder="Age"
                 />
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Sex</Label>
+                <Select value={sex} onValueChange={setSex}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEX_OPTIONS.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

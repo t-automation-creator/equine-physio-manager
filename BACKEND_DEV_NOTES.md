@@ -74,6 +74,7 @@ I also **provide technical direction** to Manus and **review frontend code** for
    - client_id: UUID (FK → Client)
    - yard_id: UUID (FK → Yard)
    - age: number
+   - sex: enum (Male, Female, Gelding) **NEW**
    - discipline: string[] (dressage, jumping, etc.)
    - medical_notes: text
    - photos: string[] (file URLs)
@@ -85,6 +86,7 @@ I also **provide technical direction** to Manus and **review frontend code** for
    - client_id: UUID (FK → Client)
    - yard_id: UUID (FK → Yard, nullable)
    - horse_ids: UUID[] (FK → Horse, array)
+   - appointment_type_id: UUID (FK → AppointmentType, nullable) **NEW**
    - date: date (YYYY-MM-DD)
    - time: time (HH:MM)
    - notes: text
@@ -130,6 +132,15 @@ I also **provide technical direction** to Manus and **review frontend code** for
    - home_address: string
    - business_name: string
    - pricing_config: object
+   - created_by: string
+   - created_date: timestamp
+
+8. AppointmentType **NEW**
+   - id: UUID
+   - name: string (e.g., "Equine Physio", "INDIBA")
+   - duration_in_minutes: number (e.g., 60, 45)
+   - color: string (hex color, e.g., "#B8D9FF")
+   - description: text (optional)
    - created_by: string
    - created_date: timestamp
 ```

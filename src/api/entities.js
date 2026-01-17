@@ -15,6 +15,8 @@ export const Invoice = base44.entities.Invoice;
 
 export const Settings = base44.entities.Settings;
 
+export const AppointmentType = base44.entities.AppointmentType;
+
 
 
 // auth sdk:

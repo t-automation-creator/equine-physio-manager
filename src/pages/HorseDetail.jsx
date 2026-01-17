@@ -143,6 +143,12 @@ ${horse.medical_notes ? `Medical Notes:\n${horse.medical_notes}\n\n---\n\n` : ''
               <p className="font-semibold text-gray-900">{horse.age} years</p>
             </div>
           )}
+          {horse.sex && (
+            <div>
+              <p className="text-sm text-gray-500">Sex</p>
+              <p className="font-semibold text-gray-900">{horse.sex}</p>
+            </div>
+          )}
           {horse.discipline && (
             <div>
               <p className="text-sm text-gray-500">Discipline</p>
