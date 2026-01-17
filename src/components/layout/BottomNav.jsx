@@ -1,10 +1,18 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getBottomNavItems } from '@/config/navigation';
+import { Home, Calendar, Users, Heart, FileText } from 'lucide-react';
+import { createPageUrl } from '../../utils';
+
+const bottomNavItems = [
+  { label: 'Home', to: createPageUrl('Home'), icon: Home },
+  { label: 'Appointments', to: createPageUrl('Appointments'), icon: Calendar },
+  { label: 'Clients', to: createPageUrl('Clients'), icon: Users },
+  { label: 'Horses', to: createPageUrl('Horses'), icon: Heart },
+  { label: 'Invoices', to: createPageUrl('Invoices'), icon: FileText },
+];
 
 export default function BottomNav() {
   const location = useLocation();
-  const bottomNavItems = getBottomNavItems();
   const isActive = (path) => location.pathname === path;
 
   return (
