@@ -253,6 +253,17 @@ export default function AppointmentDetail() {
             Mark as Completed
           </Button>
         )}
+
+        {appointment.status === 'completed' && (
+          <Button 
+            variant="destructive"
+            className="w-full"
+            size="lg"
+            onClick={() => updateStatusMutation.mutate('scheduled')}
+          >
+            Revert to Scheduled
+          </Button>
+        )}
       </div>
     </div>
   );
