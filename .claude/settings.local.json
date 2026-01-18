@@ -16,7 +16,10 @@
       "Bash(npm run build:*)",
       "Bash(where:*)",
       "Bash(dir:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(Test-Path \"V:\"\")",
+      "Bash(powershell -Command \"robocopy ''C:\\\\Users\\\\gninj\\\\source\\\\repos\\\\equine-physio-manager'' ''V:\\\\DEV_DRIVE\\\\equine-physio-manager'' /E /ZB /COPY:DAT /R:3 /W:5 /MT:16 /LOG:V:\\\\migration_log.txt; Get-Content ''V:\\\\migration_log.txt'' -Tail 30\")",
+      "Bash(powershell -Command \"robocopy ''C:\\\\Users\\\\gninj\\\\source\\\\repos\\\\equine-physio-manager'' ''V:\\\\DEV_DRIVE\\\\equine-physio-manager'' /E /COPY:DAT /R:3 /W:5 /MT:16 /LOG:V:\\\\migration_log.txt; Get-Content ''V:\\\\migration_log.txt'' -Tail 40\")"
     ]
   }
 }
