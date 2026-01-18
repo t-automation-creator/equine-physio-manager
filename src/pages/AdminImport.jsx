@@ -149,10 +149,17 @@ export default function AdminImport() {
           action: 'import_treatments',
           data: {
             treatments: data.treatments,
-            horseIdMap: newIdMaps.horseIdMap
+            horseIdMap: newIdMaps.horseIdMap,
+            appointmentIdMap: newIdMaps.appointmentIdMap
           }
         });
-        setResults(prev => [...prev, { step: 'Treatments', success: true, count: result.data.imported }]);
+        setResults(prev => [...prev, { 
+          step: 'Treatments', 
+          success: true, 
+          count: result.data.imported,
+          skipped: result.data.skipped,
+          errors: result.data.errors
+        }]);
       } else {
         setResults(prev => [...prev, { step: 'Treatments', success: true, count: 0, skipped: true }]);
       }
