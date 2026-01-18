@@ -80,12 +80,20 @@ export default function AdminImport() {
     const newIdMaps = { ...idMaps };
 
     try {
+      // Detect if it's an individual step file or full payload
+      const appointmentTypes = data.appointment_types || (Array.isArray(data) ? data : null);
+      const clients = data.clients || null;
+      const horses = data.horses || null;
+      const appointments = data.appointments || null;
+      const treatments = data.treatments || null;
+      const settings = data.settings || null;
+
       // Step 1: Import Appointment Types
       setCurrentStep(1);
-      if (data.appointment_types?.length > 0) {
+      if (appointmentTypes?.length > 0) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_appointment_types',
-          data: data.appointment_types,
+          data: appointmentTypes,
           target_email: 'annievetphysio@gmail.com'
         });
         newIdMaps.appointmentTypeIdMap = result.data.idMap || {};
@@ -96,11 +104,11 @@ export default function AdminImport() {
 
       // Step 2: Import Clients
       setCurrentStep(2);
-      if (data.clients?.length > 0) {
-        console.log('Importing clients:', data.clients.length);
+      if (clients?.length > 0) {
+        console.log('Importing clients:', clients.length);
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_clients',
-          data: data.clients,
+          data: clients,
           target_email: 'annievetphysio@gmail.com'
         });
         console.log('Clients import result:', result);
@@ -112,11 +120,11 @@ export default function AdminImport() {
 
       // Step 3: Import Horses
       setCurrentStep(3);
-      if (data.horses?.length > 0) {
+      if (horses?.length > 0) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_horses',
           data: {
-            horses: data.horses,
+            horses: horses,
             clientIdMap: newIdMaps.clientIdMap
           },
           target_email: 'annievetphysio@gmail.com'
@@ -134,11 +142,11 @@ export default function AdminImport() {
 
       // Step 4: Import Appointments
       setCurrentStep(4);
-      if (data.appointments?.length > 0) {
+      if (appointments?.length > 0) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_appointments',
           data: {
-            appointments: data.appointments,
+            appointments: appointments,
             clientIdMap: newIdMaps.clientIdMap,
             horseIdMap: newIdMaps.horseIdMap,
             appointmentTypeIdMap: newIdMaps.appointmentTypeIdMap
@@ -153,11 +161,11 @@ export default function AdminImport() {
 
       // Step 5: Import Treatments
       setCurrentStep(5);
-      if (data.treatments?.length > 0) {
+      if (treatments?.length > 0) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_treatments',
           data: {
-            treatments: data.treatments,
+            treatments: treatments,
             horseIdMap: newIdMaps.horseIdMap,
             appointmentIdMap: newIdMaps.appointmentIdMap
           },
@@ -176,10 +184,10 @@ export default function AdminImport() {
 
       // Step 6: Import Settings
       setCurrentStep(6);
-      if (data.settings) {
+      if (settings) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_settings',
-          data: data.settings,
+          data: settings,
           target_email: 'annievetphysio@gmail.com'
         });
         setResults(prev => [...prev, { step: 'Settings', success: true, count: 1 }]);
