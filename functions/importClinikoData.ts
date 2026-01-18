@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       const { appointments, clientIdMap, horseIdMap, appointmentTypeIdMap } = data;
       const appointmentIdMap = {};
       
-      // Filter and map appointments, skipping those without valid client_id
+      // Filter and map appointments, skipping those without valid client_id or horses
       const validAppointments = [];
       const appointmentsToCreate = [];
       
@@ -126,6 +126,12 @@ Deno.serve(async (req) => {
         const mappedHorseIds = (appt.horse_ids || [])
           .map((id) => horseIdMap[id])
           .filter((id) => id);
+        
+        // Skip appointments with no valid horses (required field)
+        if (mappedHorseIds.length === 0) {
+          console.log(`Skipping appointment ${appt.id} - no valid horses after mapping`);
+          continue;
+        }
         
         validAppointments.push(appt);
         appointmentsToCreate.push({
