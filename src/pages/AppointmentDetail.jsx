@@ -77,8 +77,20 @@ export default function AppointmentDetail() {
   const getTreatment = (horseId) => treatments.find(t => t.horse_id === horseId);
 
   const updateStatusMutation = useMutation({
-    mutationFn: (status) => base44.entities.Appointment.update(appointmentId, { status }),
-    onSuccess: () => queryClient.invalidateQueries(['appointment', appointmentId]),
+    mutationFn: async (status) => {
+      await base44.entities.Appointment.update(appointmentId, { status });
+      
+      // If reverting to scheduled, also revert treatment statuses
+      if (status === 'scheduled') {
+        for (const treatment of treatments) {
+          await base44.entities.Treatment.update(treatment.id, { status: 'not_started' });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['appointment', appointmentId]);
+      queryClient.invalidateQueries(['treatments', appointmentId]);
+    },
   });
 
   if (isLoading) {
