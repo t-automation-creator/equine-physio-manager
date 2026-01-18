@@ -53,8 +53,7 @@ Deno.serve(async (req) => {
           name: type.name,
           duration_in_minutes: type.duration_in_minutes,
           color: type.color,
-          description: type.description || '',
-          created_by: userEmail
+          description: type.description || ''
         });
         results.push(created);
         if (clinikoId) {
@@ -72,8 +71,7 @@ Deno.serve(async (req) => {
         name: client.name,
         email: client.email || '',
         phone: client.phone || '',
-        address: client.address || '',
-        created_by: userEmail
+        address: client.address || ''
       }));
       
       const created = await base44.asServiceRole.entities.Client.bulkCreate(clientsToCreate);
@@ -110,8 +108,7 @@ Deno.serve(async (req) => {
           sex: horse.sex || null,
           age: horse.age || null,
           discipline: horse.discipline || null,
-          medical_notes: horse.medical_notes || '',
-          created_by: userEmail
+          medical_notes: horse.medical_notes || ''
         });
       }
       
@@ -167,8 +164,7 @@ Deno.serve(async (req) => {
           horse_ids: mappedHorseIds,
           appointment_type_id: appointmentTypeIdMap?.[appt.appointment_type_id] || null,
           notes: appt.notes || '',
-          status: appt.status || 'scheduled',
-          created_by: userEmail
+          status: appt.status || 'scheduled'
         });
       }
       
@@ -220,8 +216,7 @@ Deno.serve(async (req) => {
             appointment_id: mappedAppointmentId,
             treatment_types: treatment.treatment_types || [],
             notes: typeof treatment.notes === 'object' ? JSON.stringify(treatment.notes) : (treatment.notes || ''),
-            status: treatment.status || 'completed',
-            created_by: userEmail
+            status: treatment.status || 'completed'
           };
           
           // Add optional fields if present
@@ -255,8 +250,7 @@ Deno.serve(async (req) => {
       const settings = data || CLINIKO_DATA.settings;
       const created = await base44.asServiceRole.entities.Settings.create({
         business_name: settings.business_name,
-        home_address: settings.home_address,
-        created_by: userEmail
+        home_address: settings.home_address
       });
       return Response.json({ success: true, imported: 1, type: 'settings', data: created });
     }
