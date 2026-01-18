@@ -1,3 +1,9 @@
+// COMMENTED OUT - Import function kept for reference
+// Last used: 2026-01-18
+// Successfully imported all Cliniko data for annievetphysio@gmail.com
+// To re-enable: uncomment the entire file
+
+/*
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.3';
 
 // Cliniko data import function
@@ -260,4 +266,12 @@ Deno.serve(async (req) => {
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
+});
+*/
+
+// Placeholder to prevent deployment errors
+Deno.serve(async (req) => {
+  return Response.json({ 
+    message: 'Import function is currently disabled. Contact administrator to re-enable.' 
+  }, { status: 503 });
 });
