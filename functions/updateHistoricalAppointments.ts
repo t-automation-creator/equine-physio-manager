@@ -17,20 +17,36 @@ Deno.serve(async (req) => {
       return apptDate < cutoffDate;
     });
 
-    // Update each appointment to completed status
-    const updates = [];
+    // Get all treatments
+    const allTreatments = await base44.entities.Treatment.list();
+
+    // Update each appointment and its treatments to completed status
+    const appointmentUpdates = [];
+    const treatmentUpdates = [];
+    
     for (const appt of historicalAppointments) {
+      // Update appointment status
       if (appt.status !== 'completed') {
         await base44.entities.Appointment.update(appt.id, { status: 'completed' });
-        updates.push(appt.id);
+        appointmentUpdates.push(appt.id);
+      }
+      
+      // Update all treatments for this appointment to completed
+      const apptTreatments = allTreatments.filter(t => t.appointment_id === appt.id);
+      for (const treatment of apptTreatments) {
+        if (treatment.status !== 'completed') {
+          await base44.entities.Treatment.update(treatment.id, { status: 'completed' });
+          treatmentUpdates.push(treatment.id);
+        }
       }
     }
 
     return Response.json({ 
       success: true, 
-      message: `Updated ${updates.length} appointments to completed`,
+      message: `Updated ${appointmentUpdates.length} appointments and ${treatmentUpdates.length} treatments to completed`,
       totalHistorical: historicalAppointments.length,
-      updated: updates.length
+      appointmentsUpdated: appointmentUpdates.length,
+      treatmentsUpdated: treatmentUpdates.length
     });
 
   } catch (error) {
