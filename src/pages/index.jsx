@@ -44,10 +44,6 @@ import YardDetail from "./YardDetail";
 
 import Yards from "./Yards";
 
-import AdminImport from "./AdminImport";
-
-import AnnieImport from "./AnnieImport";
-
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -95,10 +91,6 @@ const PAGES = {
     YardDetail: YardDetail,
     
     Yards: Yards,
-    
-    AdminImport: AdminImport,
-
-    AnnieImport: AnnieImport,
 
 }
 
@@ -170,10 +162,6 @@ function PagesContent() {
                 <Route path="/YardDetail" element={<YardDetail />} />
                 
                 <Route path="/Yards" element={<Yards />} />
-                
-                <Route path="/AdminImport" element={<AdminImport />} />
-
-                <Route path="/AnnieImport" element={<AnnieImport />} />
 
             </Routes>
         </Layout>
