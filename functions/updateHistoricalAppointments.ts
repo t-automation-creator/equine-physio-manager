@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     // Get all appointments before January 17, 2026
-    const allAppointments = await base44.entities.Appointment.list();
+    const allAppointments = await base44.asServiceRole.entities.Appointment.list();
     const historicalAppointments = allAppointments.filter(appt => {
       const apptDate = new Date(appt.date);
       const cutoffDate = new Date('2026-01-17');
@@ -18,24 +18,24 @@ Deno.serve(async (req) => {
     });
 
     // Get all treatments
-    const allTreatments = await base44.entities.Treatment.list();
+    const allTreatments = await base44.asServiceRole.entities.Treatment.list();
 
     // Update each appointment and its treatments to completed status
     const appointmentUpdates = [];
     const treatmentUpdates = [];
-    
+
     for (const appt of historicalAppointments) {
       // Update appointment status
       if (appt.status !== 'completed') {
-        await base44.entities.Appointment.update(appt.id, { status: 'completed' });
+        await base44.asServiceRole.entities.Appointment.update(appt.id, { status: 'completed' });
         appointmentUpdates.push(appt.id);
       }
-      
+
       // Update all treatments for this appointment to completed
       const apptTreatments = allTreatments.filter(t => t.appointment_id === appt.id);
       for (const treatment of apptTreatments) {
         if (treatment.status !== 'completed') {
-          await base44.entities.Treatment.update(treatment.id, { status: 'completed' });
+          await base44.asServiceRole.entities.Treatment.update(treatment.id, { status: 'completed' });
           treatmentUpdates.push(treatment.id);
         }
       }
