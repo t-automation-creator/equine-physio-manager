@@ -13,14 +13,7 @@ import {
   Palette, 
   Building2, 
   Image,
-  Download,
-  FileJson,
-  Loader2,
-  CheckCircle,
-  XCircle,
-  ChevronDown,
-  ChevronUp,
-  AlertCircle
+  Download
 } from 'lucide-react';
 
 export default function Settings() {
