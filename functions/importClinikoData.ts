@@ -60,57 +60,62 @@ Deno.serve(async (req) => {
 
     if (action === 'import_clients') {
       // Import clients
-      const results = [];
       const clientIdMap = {};
       
-      for (const client of data) {
-        const created = await base44.asServiceRole.entities.Client.create({
-          name: client.name,
-          email: client.email || '',
-          phone: client.phone || '',
-          address: client.address || '',
-          created_by: userEmail
-        });
-        clientIdMap[client.id] = created.id;
-        results.push(created);
+      const clientsToCreate = data.map(client => ({
+        name: client.name,
+        email: client.email || '',
+        phone: client.phone || '',
+        address: client.address || '',
+        created_by: userEmail
+      }));
+      
+      const created = await base44.asServiceRole.entities.Client.bulkCreate(clientsToCreate);
+      
+      // Map old IDs to new IDs
+      for (let i = 0; i < data.length; i++) {
+        clientIdMap[data[i].id] = created[i].id;
       }
-      return Response.json({ success: true, imported: results.length, type: 'clients', idMap: clientIdMap });
+      
+      return Response.json({ success: true, imported: created.length, type: 'clients', idMap: clientIdMap });
     }
 
     if (action === 'import_horses') {
       // Import horses - requires clientIdMap from previous import
       const { horses, clientIdMap } = data;
-      const results = [];
       const horseIdMap = {};
       
-      for (const horse of horses) {
-        const created = await base44.asServiceRole.entities.Horse.create({
-          name: horse.name,
-          owner_id: clientIdMap[horse.owner_id] || null,
-          sex: horse.sex || null,
-          age: horse.age || null,
-          discipline: horse.discipline || null,
-          medical_notes: horse.medical_notes || '',
-          created_by: userEmail
-        });
-        horseIdMap[horse.id] = created.id;
-        results.push(created);
+      const horsesToCreate = horses.map(horse => ({
+        name: horse.name,
+        owner_id: clientIdMap[horse.owner_id] || null,
+        sex: horse.sex || null,
+        age: horse.age || null,
+        discipline: horse.discipline || null,
+        medical_notes: horse.medical_notes || '',
+        created_by: userEmail
+      }));
+      
+      const created = await base44.asServiceRole.entities.Horse.bulkCreate(horsesToCreate);
+      
+      // Map old IDs to new IDs
+      for (let i = 0; i < horses.length; i++) {
+        horseIdMap[horses[i].id] = created[i].id;
       }
-      return Response.json({ success: true, imported: results.length, type: 'horses', idMap: horseIdMap });
+      
+      return Response.json({ success: true, imported: created.length, type: 'horses', idMap: horseIdMap });
     }
 
     if (action === 'import_appointments') {
       // Import appointments - requires clientIdMap and horseIdMap
       const { appointments, clientIdMap, horseIdMap, appointmentTypeIdMap } = data;
-      const results = [];
       const appointmentIdMap = {};
       
-      for (const appt of appointments) {
+      const appointmentsToCreate = appointments.map(appt => {
         const mappedHorseIds = (appt.horse_ids || [])
           .map((id) => horseIdMap[id])
           .filter((id) => id);
         
-        const created = await base44.asServiceRole.entities.Appointment.create({
+        return {
           date: appt.date,
           time: appt.time || null,
           client_id: clientIdMap[appt.client_id] || null,
@@ -119,30 +124,35 @@ Deno.serve(async (req) => {
           notes: appt.notes || '',
           status: appt.status || 'scheduled',
           created_by: userEmail
-        });
-        appointmentIdMap[appt.id] = created.id;
-        results.push(created);
+        };
+      });
+      
+      const created = await base44.asServiceRole.entities.Appointment.bulkCreate(appointmentsToCreate);
+      
+      // Map old IDs to new IDs
+      for (let i = 0; i < appointments.length; i++) {
+        appointmentIdMap[appointments[i].id] = created[i].id;
       }
-      return Response.json({ success: true, imported: results.length, type: 'appointments', idMap: appointmentIdMap });
+      
+      return Response.json({ success: true, imported: created.length, type: 'appointments', idMap: appointmentIdMap });
     }
 
     if (action === 'import_treatments') {
       // Import treatments - requires horseIdMap
       const { treatments, horseIdMap } = data;
-      const results = [];
       
-      for (const treatment of treatments) {
-        const created = await base44.asServiceRole.entities.Treatment.create({
-          horse_id: horseIdMap[treatment.horse_id] || null,
-          treatment_types: treatment.treatment_types || [],
-          notes: treatment.notes || '',
-          status: treatment.status || 'completed',
-          created_date: treatment.created_date,
-          created_by: userEmail
-        });
-        results.push(created);
-      }
-      return Response.json({ success: true, imported: results.length, type: 'treatments' });
+      const treatmentsToCreate = treatments.map(treatment => ({
+        horse_id: horseIdMap[treatment.horse_id] || null,
+        treatment_types: treatment.treatment_types || [],
+        notes: treatment.notes || '',
+        status: treatment.status || 'completed',
+        created_date: treatment.created_date,
+        created_by: userEmail
+      }));
+      
+      const created = await base44.asServiceRole.entities.Treatment.bulkCreate(treatmentsToCreate);
+      
+      return Response.json({ success: true, imported: created.length, type: 'treatments' });
     }
 
     if (action === 'import_settings') {
