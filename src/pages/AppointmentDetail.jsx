@@ -98,6 +98,14 @@ export default function AppointmentDetail() {
   const allTreatmentsComplete = appointmentHorses.length > 0 && 
     appointmentHorses.every(h => getTreatment(h.id)?.status === 'completed');
 
+  // Determine actual appointment status based on treatments
+  const getActualAppointmentStatus = () => {
+    if (appointmentHorses.length === 0) return appointment.status;
+    if (allTreatmentsComplete) return 'completed';
+    if (appointmentHorses.some(h => getTreatment(h.id)?.status === 'in_progress')) return 'in_progress';
+    return 'scheduled';
+  };
+
   return (
     <div className="pb-6">
       <PageHeader 
@@ -118,7 +126,7 @@ export default function AppointmentDetail() {
               </div>
             )}
           </div>
-          <StatusBadge status={appointment.status} />
+          <StatusBadge status={getActualAppointmentStatus()} />
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
