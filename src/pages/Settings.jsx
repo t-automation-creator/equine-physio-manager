@@ -174,162 +174,30 @@ export default function Settings() {
       />
 
       <div className="space-y-6">
-        {/* Import/Export Data Section */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <button
-            onClick={() => setImportExpanded(!importExpanded)}
-            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        {/* Export Data Section */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Download size={20} className="text-cvs-blue" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900">Backup Your Data</h3>
+              <p className="text-sm text-gray-500">Download a complete backup of all your data</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-4">
+            Download a backup of all your data including clients, horses, appointments, treatments, and invoice types.
+          </p>
+
+          <Button 
+            onClick={handleExport}
+            variant="default"
+            className="w-full"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <FileJson size={20} className="text-purple-600" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-bold text-gray-900">Import / Export Data</h3>
-                <p className="text-sm text-gray-500">Import from Cliniko or backup your data</p>
-              </div>
-            </div>
-            {importExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </button>
-
-          {importExpanded && (
-            <div className="px-6 pb-6 border-t border-gray-100 pt-4 space-y-6">
-              {/* Import Section */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Upload size={18} />
-                  Import Data
-                </h4>
-                <p className="text-sm text-gray-600 mb-4">
-                  Import data from Cliniko or a previous backup. Upload a JSON file or paste the data below.
-                </p>
-
-                <div className="space-y-4">
-                  <label className="block">
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
-                      <FileJson size={24} className="text-gray-400" />
-                      <span className="text-gray-600 font-medium">
-                        {importData ? 'File loaded - Click to change' : 'Click to upload JSON file'}
-                      </span>
-                    </div>
-                  </label>
-
-                  <div className="text-center text-gray-400 text-sm">or paste JSON data</div>
-
-                  <Textarea
-                    value={importData}
-                    onChange={(e) => {
-                      setImportData(e.target.value);
-                      setImportError(null);
-                      setImportResults([]);
-                      setImportComplete(false);
-                    }}
-                    placeholder='Paste the contents of your import file here...'
-                    className="min-h-[120px] font-mono text-xs"
-                  />
-
-                  {/* Import Progress */}
-                  {importResults.length > 0 && (
-                    <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                      {importResults.map((result, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          {result.status === 'loading' ? (
-                            <Loader2 size={16} className="animate-spin text-blue-600" />
-                          ) : result.status === 'success' ? (
-                            <CheckCircle size={16} className="text-green-600" />
-                          ) : (
-                            <XCircle size={16} className="text-red-600" />
-                          )}
-                          <span className="text-sm text-gray-700">
-                            {result.step}
-                            {result.count !== undefined && ` - ${result.count} records`}
-                            {result.error && ` - ${result.error}`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Error Display */}
-                  {importError && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-                      <XCircle className="text-red-600" size={20} />
-                      <span className="text-sm text-red-700">{importError}</span>
-                    </div>
-                  )}
-
-                  {/* Success Message */}
-                  {importComplete && (
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-                      <CheckCircle className="text-green-600" size={20} />
-                      <span className="text-sm text-green-700">Import completed successfully!</span>
-                    </div>
-                  )}
-
-                  <Button 
-                    onClick={runImport}
-                    disabled={!importData || importing}
-                    className="w-full"
-                    variant="default"
-                  >
-                    {importing ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={18} />
-                        Start Import
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-gray-200" />
-
-              {/* Export Section */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Download size={18} />
-                  Export Data
-                </h4>
-                <p className="text-sm text-gray-600 mb-4">
-                  Download a backup of all your data including clients, horses, appointments, and treatments.
-                </p>
-
-                <Button 
-                  onClick={handleExport}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Download size={18} />
-                  Download Backup
-                </Button>
-              </div>
-
-              {/* Info Note */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-                <AlertCircle className="text-blue-600 mt-0.5" size={18} />
-                <div className="text-sm text-blue-700">
-                  <p className="font-medium">Import Notes:</p>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>All imported data will be assigned to your account</li>
-                    <li>Running import multiple times will create duplicate records</li>
-                    <li>Supported format: Cliniko export or app backup JSON</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
+            <Download size={18} />
+            Download Backup
+          </Button>
         </div>
 
         {/* Business Information */}
