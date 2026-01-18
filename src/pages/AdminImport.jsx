@@ -85,7 +85,8 @@ export default function AdminImport() {
       if (data.appointment_types?.length > 0) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_appointment_types',
-          data: data.appointment_types
+          data: data.appointment_types,
+          target_email: 'annievetphysio@gmail.com'
         });
         newIdMaps.appointmentTypeIdMap = result.data.idMap || {};
         setResults(prev => [...prev, { step: 'Appointment Types', success: true, count: result.data.imported }]);
@@ -99,7 +100,8 @@ export default function AdminImport() {
         console.log('Importing clients:', data.clients.length);
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_clients',
-          data: data.clients
+          data: data.clients,
+          target_email: 'annievetphysio@gmail.com'
         });
         console.log('Clients import result:', result);
         newIdMaps.clientIdMap = result.data.idMap || {};
@@ -116,7 +118,8 @@ export default function AdminImport() {
           data: {
             horses: data.horses,
             clientIdMap: newIdMaps.clientIdMap
-          }
+          },
+          target_email: 'annievetphysio@gmail.com'
         });
         newIdMaps.horseIdMap = result.data.idMap || {};
         setResults(prev => [...prev, { 
@@ -139,7 +142,8 @@ export default function AdminImport() {
             clientIdMap: newIdMaps.clientIdMap,
             horseIdMap: newIdMaps.horseIdMap,
             appointmentTypeIdMap: newIdMaps.appointmentTypeIdMap
-          }
+          },
+          target_email: 'annievetphysio@gmail.com'
         });
         newIdMaps.appointmentIdMap = result.data.idMap || {};
         setResults(prev => [...prev, { step: 'Appointments', success: true, count: result.data.imported }]);
@@ -156,7 +160,8 @@ export default function AdminImport() {
             treatments: data.treatments,
             horseIdMap: newIdMaps.horseIdMap,
             appointmentIdMap: newIdMaps.appointmentIdMap
-          }
+          },
+          target_email: 'annievetphysio@gmail.com'
         });
         setResults(prev => [...prev, { 
           step: 'Treatments', 
@@ -174,7 +179,8 @@ export default function AdminImport() {
       if (data.settings) {
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_settings',
-          data: data.settings
+          data: data.settings,
+          target_email: 'annievetphysio@gmail.com'
         });
         setResults(prev => [...prev, { step: 'Settings', success: true, count: 1 }]);
       } else {

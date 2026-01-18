@@ -39,8 +39,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, data } = await req.json();
-    const userEmail = user.email;
+    const { action, data, target_email } = await req.json();
+    const userEmail = target_email || user.email;
 
     if (action === 'import_appointment_types') {
       // Import appointment types
