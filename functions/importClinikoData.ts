@@ -166,18 +166,37 @@ Deno.serve(async (req) => {
       // Import treatments - requires horseIdMap
       const { treatments, horseIdMap } = data;
       
-      const treatmentsToCreate = treatments.map(treatment => ({
-        horse_id: horseIdMap[treatment.horse_id] || null,
-        treatment_types: treatment.treatment_types || [],
-        notes: treatment.notes || '',
-        status: treatment.status || 'completed',
-        created_date: treatment.created_date,
-        created_by: userEmail
-      }));
+      const validTreatments = [];
+      const treatmentsToCreate = [];
+      
+      for (const treatment of treatments) {
+        const mappedHorseId = horseIdMap[treatment.horse_id];
+        
+        // Skip treatments without valid horse mapping
+        if (!mappedHorseId) {
+          console.log(`Skipping treatment - no valid horse mapping for ${treatment.horse_id}`);
+          continue;
+        }
+        
+        validTreatments.push(treatment);
+        treatmentsToCreate.push({
+          horse_id: mappedHorseId,
+          treatment_types: treatment.treatment_types || [],
+          notes: typeof treatment.notes === 'object' ? JSON.stringify(treatment.notes) : (treatment.notes || ''),
+          status: treatment.status || 'completed',
+          created_date: treatment.created_date,
+          created_by: userEmail
+        });
+      }
       
       const created = await base44.asServiceRole.entities.Treatment.bulkCreate(treatmentsToCreate);
       
-      return Response.json({ success: true, imported: created.length, type: 'treatments' });
+      return Response.json({ 
+        success: true, 
+        imported: created.length, 
+        skipped: treatments.length - validTreatments.length,
+        type: 'treatments' 
+      });
     }
 
     if (action === 'import_settings') {
