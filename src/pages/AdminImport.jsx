@@ -119,7 +119,12 @@ export default function AdminImport() {
           }
         });
         newIdMaps.horseIdMap = result.data.idMap || {};
-        setResults(prev => [...prev, { step: 'Horses', success: true, count: result.data.imported }]);
+        setResults(prev => [...prev, { 
+          step: 'Horses', 
+          success: true, 
+          count: result.data.imported,
+          skipped: result.data.skipped
+        }]);
       } else {
         setResults(prev => [...prev, { step: 'Horses', success: true, count: 0, skipped: true }]);
       }
