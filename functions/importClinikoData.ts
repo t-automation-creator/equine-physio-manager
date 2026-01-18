@@ -85,24 +85,44 @@ Deno.serve(async (req) => {
       const { horses, clientIdMap } = data;
       const horseIdMap = {};
       
-      const horsesToCreate = horses.map(horse => ({
-        name: horse.name,
-        owner_id: clientIdMap[horse.owner_id] || null,
-        sex: horse.sex || null,
-        age: horse.age || null,
-        discipline: horse.discipline || null,
-        medical_notes: horse.medical_notes || '',
-        created_by: userEmail
-      }));
+      const validHorses = [];
+      const horsesToCreate = [];
+      
+      for (const horse of horses) {
+        const mappedOwnerId = clientIdMap[horse.owner_id];
+        
+        // Skip horses without valid owner mapping (required field)
+        if (!mappedOwnerId) {
+          console.log(`Skipping horse ${horse.name} - no valid owner mapping for ${horse.owner_id}`);
+          continue;
+        }
+        
+        validHorses.push(horse);
+        horsesToCreate.push({
+          name: horse.name,
+          owner_id: mappedOwnerId,
+          sex: horse.sex || null,
+          age: horse.age || null,
+          discipline: horse.discipline || null,
+          medical_notes: horse.medical_notes || '',
+          created_by: userEmail
+        });
+      }
       
       const created = await base44.asServiceRole.entities.Horse.bulkCreate(horsesToCreate);
       
-      // Map old IDs to new IDs
-      for (let i = 0; i < horses.length; i++) {
-        horseIdMap[horses[i].id] = created[i].id;
+      // Map old IDs to new IDs (only for valid horses)
+      for (let i = 0; i < validHorses.length; i++) {
+        horseIdMap[validHorses[i].id] = created[i].id;
       }
       
-      return Response.json({ success: true, imported: created.length, type: 'horses', idMap: horseIdMap });
+      return Response.json({ 
+        success: true, 
+        imported: created.length, 
+        skipped: horses.length - validHorses.length,
+        type: 'horses', 
+        idMap: horseIdMap 
+      });
     }
 
     if (action === 'import_appointments') {
