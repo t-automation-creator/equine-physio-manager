@@ -34,14 +34,6 @@ export default function Settings() {
     color_scheme: 'blue'
   });
   const [uploading, setUploading] = useState(false);
-  
-  // Import/Export state
-  const [importExpanded, setImportExpanded] = useState(false);
-  const [importData, setImportData] = useState('');
-  const [importing, setImporting] = useState(false);
-  const [importResults, setImportResults] = useState([]);
-  const [importError, setImportError] = useState(null);
-  const [importComplete, setImportComplete] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
