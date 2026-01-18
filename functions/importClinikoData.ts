@@ -53,8 +53,9 @@ Deno.serve(async (req) => {
           name: type.name,
           duration_in_minutes: type.duration_in_minutes,
           color: type.color,
-          description: type.description || ''
-        }, userEmail);
+          description: type.description || '',
+          created_by: userEmail
+        });
         results.push(created);
         if (clinikoId) {
           idMap[clinikoId] = created.id;
