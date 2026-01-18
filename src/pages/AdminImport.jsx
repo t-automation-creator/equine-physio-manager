@@ -314,6 +314,36 @@ export default function AdminImport() {
           </div>
         )}
 
+        {/* Cleanup Button */}
+        <Button 
+          onClick={async () => {
+            if (!confirm('This will DELETE ALL data and re-import fresh. Continue?')) return;
+            setImporting(true);
+            setError(null);
+            try {
+              const result = await base44.functions.invoke('cleanupAndReimport', {});
+              alert('Cleanup complete. Now paste your import data and click Import.');
+              setImporting(false);
+            } catch (err) {
+              setError(err.message);
+              setImporting(false);
+            }
+          }}
+          disabled={importing}
+          className="w-full"
+          size="lg"
+          variant="destructive"
+        >
+          {importing ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Step 1: Delete All & Clean'
+          )}
+        </Button>
+
         {/* Import Button */}
         <Button 
           onClick={runImport}
@@ -329,7 +359,7 @@ export default function AdminImport() {
           ) : (
             <>
               <Upload size={20} />
-              Start Import
+              Step 2: Start Import
             </>
           )}
         </Button>
