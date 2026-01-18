@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     if (action === 'import_clients') {
       // Import clients
       const results = [];
-      const clientIdMap: Record<string, string> = {};
+      const clientIdMap = {};
       
       for (const client of data) {
         const created = await base44.asServiceRole.entities.Client.create({
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
       // Import horses - requires clientIdMap from previous import
       const { horses, clientIdMap } = data;
       const results = [];
-      const horseIdMap: Record<string, string> = {};
+      const horseIdMap = {};
       
       for (const horse of horses) {
         const created = await base44.asServiceRole.entities.Horse.create({
@@ -103,12 +103,12 @@ Deno.serve(async (req) => {
       // Import appointments - requires clientIdMap and horseIdMap
       const { appointments, clientIdMap, horseIdMap, appointmentTypeIdMap } = data;
       const results = [];
-      const appointmentIdMap: Record<string, string> = {};
+      const appointmentIdMap = {};
       
       for (const appt of appointments) {
         const mappedHorseIds = (appt.horse_ids || [])
-          .map((id: string) => horseIdMap[id])
-          .filter((id: string) => id);
+          .map((id) => horseIdMap[id])
+          .filter((id) => id);
         
         const created = await base44.asServiceRole.entities.Appointment.create({
           date: appt.date,
