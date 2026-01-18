@@ -96,10 +96,12 @@ export default function AdminImport() {
       // Step 2: Import Clients
       setCurrentStep(2);
       if (data.clients?.length > 0) {
+        console.log('Importing clients:', data.clients.length);
         const result = await base44.functions.invoke('importClinikoData', {
           action: 'import_clients',
           data: data.clients
         });
+        console.log('Clients import result:', result);
         newIdMaps.clientIdMap = result.data.idMap || {};
         setResults(prev => [...prev, { step: 'Clients', success: true, count: result.data.imported }]);
       } else {
@@ -171,8 +173,15 @@ export default function AdminImport() {
       setCurrentStep(7); // Complete
 
     } catch (err) {
-      setError(err.message || 'Import failed');
-      setResults(prev => [...prev, { step: steps[currentStep - 1]?.name || 'Unknown', success: false, error: err.message }]);
+      console.error('Import error:', err);
+      const errorMsg = err.response?.data?.error || err.message || 'Import failed';
+      const statusCode = err.response?.status || 'unknown';
+      setError(`${errorMsg} (Status: ${statusCode})`);
+      setResults(prev => [...prev, { 
+        step: steps[currentStep - 1]?.name || 'Unknown', 
+        success: false, 
+        error: `${errorMsg} (${statusCode})`
+      }]);
     } finally {
       setImporting(false);
     }
