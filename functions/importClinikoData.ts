@@ -193,29 +193,30 @@ Deno.serve(async (req) => {
       for (const treatment of treatments) {
         try {
           const mappedHorseId = horseIdMap[treatment.horse_id];
+          const mappedAppointmentId = treatment.appointment_id ? appointmentIdMap?.[treatment.appointment_id] : null;
           
-          // Skip treatments without valid horse mapping
+          // Skip treatments without valid horse mapping (required)
           if (!mappedHorseId) {
             console.log(`Skipping treatment - no valid horse mapping for ${treatment.horse_id}`);
             skipped++;
             continue;
           }
           
-          // Map appointment_id if available
-          const mappedAppointmentId = treatment.appointment_id ? appointmentIdMap?.[treatment.appointment_id] : null;
+          // Skip treatments without valid appointment mapping (required)
+          if (!mappedAppointmentId) {
+            console.log(`Skipping treatment - no valid appointment mapping for ${treatment.appointment_id}`);
+            skipped++;
+            continue;
+          }
           
           const treatmentData = {
             horse_id: mappedHorseId,
+            appointment_id: mappedAppointmentId,
             treatment_types: treatment.treatment_types || [],
             notes: typeof treatment.notes === 'object' ? JSON.stringify(treatment.notes) : (treatment.notes || ''),
             status: treatment.status || 'completed',
             created_by: userEmail
           };
-          
-          // Only add appointment_id if we have a valid mapping
-          if (mappedAppointmentId) {
-            treatmentData.appointment_id = mappedAppointmentId;
-          }
           
           // Add optional fields if present
           if (treatment.created_date) {
