@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
       const idMap = {};
       for (const type of (data || CLINIKO_DATA.appointment_types)) {
         const clinikoId = type.cliniko_id || type.id;
-        const created = await base44.asServiceRole.entities.AppointmentType.create({
+        const created = await base44.entities.AppointmentType.create({
           cliniko_id: clinikoId,
           name: type.name,
           duration_in_minutes: type.duration_in_minutes,
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
         address: client.address || ''
       }));
       
-      const created = await base44.asServiceRole.entities.Client.bulkCreate(clientsToCreate);
+      const created = await base44.entities.Client.bulkCreate(clientsToCreate);
       
       // Map old IDs to new IDs
       for (let i = 0; i < data.length; i++) {
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
         });
       }
       
-      const created = await base44.asServiceRole.entities.Horse.bulkCreate(horsesToCreate);
+      const created = await base44.entities.Horse.bulkCreate(horsesToCreate);
       
       // Map old IDs to new IDs (only for valid horses)
       for (let i = 0; i < validHorses.length; i++) {
@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
         });
       }
       
-      const created = await base44.asServiceRole.entities.Appointment.bulkCreate(appointmentsToCreate);
+      const created = await base44.entities.Appointment.bulkCreate(appointmentsToCreate);
       
       // Map old IDs to new IDs (only for valid appointments)
       for (let i = 0; i < validAppointments.length; i++) {
@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
             treatmentData.follow_up_date = treatment.follow_up_date;
           }
           
-          const created = await base44.asServiceRole.entities.Treatment.create(treatmentData);
+          const created = await base44.entities.Treatment.create(treatmentData);
           results.push(created);
           
         } catch (err) {
@@ -248,7 +248,7 @@ Deno.serve(async (req) => {
     if (action === 'import_settings') {
       // Import settings
       const settings = data || CLINIKO_DATA.settings;
-      const created = await base44.asServiceRole.entities.Settings.create({
+      const created = await base44.entities.Settings.create({
         business_name: settings.business_name,
         home_address: settings.home_address
       });
