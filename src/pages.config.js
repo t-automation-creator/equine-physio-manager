@@ -1,5 +1,3 @@
-import AdminImport from './pages/AdminImport';
-import AnnieImport from './pages/AnnieImport';
 import AppointmentDetail from './pages/AppointmentDetail';
 import Appointments from './pages/Appointments';
 import ClientDetail from './pages/ClientDetail';
@@ -26,13 +24,10 @@ import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
-import StepImport from './pages/StepImport';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AdminImport": AdminImport,
-    "AnnieImport": AnnieImport,
     "AppointmentDetail": AppointmentDetail,
     "Appointments": Appointments,
     "ClientDetail": ClientDetail,
@@ -59,7 +54,6 @@ export const PAGES = {
     "YardDetail": YardDetail,
     "Yards": Yards,
     "index": index,
-    "StepImport": StepImport,
 }
 
 export const pagesConfig = {
