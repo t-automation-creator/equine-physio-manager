@@ -110,31 +110,50 @@ Deno.serve(async (req) => {
       const { appointments, clientIdMap, horseIdMap, appointmentTypeIdMap } = data;
       const appointmentIdMap = {};
       
-      const appointmentsToCreate = appointments.map(appt => {
+      // Filter and map appointments, skipping those without valid client_id
+      const validAppointments = [];
+      const appointmentsToCreate = [];
+      
+      for (const appt of appointments) {
+        const mappedClientId = clientIdMap[appt.client_id];
+        
+        // Skip appointments without valid client mapping
+        if (!mappedClientId) {
+          console.log(`Skipping appointment ${appt.id} - no valid client mapping for ${appt.client_id}`);
+          continue;
+        }
+        
         const mappedHorseIds = (appt.horse_ids || [])
           .map((id) => horseIdMap[id])
           .filter((id) => id);
         
-        return {
+        validAppointments.push(appt);
+        appointmentsToCreate.push({
           date: appt.date,
           time: appt.time || null,
-          client_id: clientIdMap[appt.client_id] || null,
+          client_id: mappedClientId,
           horse_ids: mappedHorseIds,
           appointment_type_id: appointmentTypeIdMap?.[appt.appointment_type_id] || null,
           notes: appt.notes || '',
           status: appt.status || 'scheduled',
           created_by: userEmail
-        };
-      });
+        });
+      }
       
       const created = await base44.asServiceRole.entities.Appointment.bulkCreate(appointmentsToCreate);
       
-      // Map old IDs to new IDs
-      for (let i = 0; i < appointments.length; i++) {
-        appointmentIdMap[appointments[i].id] = created[i].id;
+      // Map old IDs to new IDs (only for valid appointments)
+      for (let i = 0; i < validAppointments.length; i++) {
+        appointmentIdMap[validAppointments[i].id] = created[i].id;
       }
       
-      return Response.json({ success: true, imported: created.length, type: 'appointments', idMap: appointmentIdMap });
+      return Response.json({ 
+        success: true, 
+        imported: created.length, 
+        skipped: appointments.length - validAppointments.length,
+        type: 'appointments', 
+        idMap: appointmentIdMap 
+      });
     }
 
     if (action === 'import_treatments') {
