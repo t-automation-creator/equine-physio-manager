@@ -164,37 +164,61 @@ Deno.serve(async (req) => {
 
     if (action === 'import_treatments') {
       // Import treatments - requires horseIdMap
-      const { treatments, horseIdMap } = data;
+      const { treatments, horseIdMap, appointmentIdMap } = data;
       
-      const validTreatments = [];
-      const treatmentsToCreate = [];
+      const results = [];
+      const errors = [];
+      let skipped = 0;
       
       for (const treatment of treatments) {
-        const mappedHorseId = horseIdMap[treatment.horse_id];
-        
-        // Skip treatments without valid horse mapping
-        if (!mappedHorseId) {
-          console.log(`Skipping treatment - no valid horse mapping for ${treatment.horse_id}`);
-          continue;
+        try {
+          const mappedHorseId = horseIdMap[treatment.horse_id];
+          
+          // Skip treatments without valid horse mapping
+          if (!mappedHorseId) {
+            console.log(`Skipping treatment - no valid horse mapping for ${treatment.horse_id}`);
+            skipped++;
+            continue;
+          }
+          
+          // Map appointment_id if available
+          const mappedAppointmentId = treatment.appointment_id ? appointmentIdMap?.[treatment.appointment_id] : null;
+          
+          const treatmentData = {
+            horse_id: mappedHorseId,
+            treatment_types: treatment.treatment_types || [],
+            notes: typeof treatment.notes === 'object' ? JSON.stringify(treatment.notes) : (treatment.notes || ''),
+            status: treatment.status || 'completed',
+            created_by: userEmail
+          };
+          
+          // Only add appointment_id if we have a valid mapping
+          if (mappedAppointmentId) {
+            treatmentData.appointment_id = mappedAppointmentId;
+          }
+          
+          // Add optional fields if present
+          if (treatment.created_date) {
+            treatmentData.created_date = treatment.created_date;
+          }
+          if (treatment.follow_up_date) {
+            treatmentData.follow_up_date = treatment.follow_up_date;
+          }
+          
+          const created = await base44.asServiceRole.entities.Treatment.create(treatmentData);
+          results.push(created);
+          
+        } catch (err) {
+          console.error(`Failed to import treatment (horse: ${treatment.horse_id}):`, err.message);
+          errors.push({ horse_id: treatment.horse_id, error: err.message });
         }
-        
-        validTreatments.push(treatment);
-        treatmentsToCreate.push({
-          horse_id: mappedHorseId,
-          treatment_types: treatment.treatment_types || [],
-          notes: typeof treatment.notes === 'object' ? JSON.stringify(treatment.notes) : (treatment.notes || ''),
-          status: treatment.status || 'completed',
-          created_date: treatment.created_date,
-          created_by: userEmail
-        });
       }
-      
-      const created = await base44.asServiceRole.entities.Treatment.bulkCreate(treatmentsToCreate);
       
       return Response.json({ 
         success: true, 
-        imported: created.length, 
-        skipped: treatments.length - validTreatments.length,
+        imported: results.length, 
+        skipped,
+        errors: errors.length > 0 ? errors : undefined,
         type: 'treatments' 
       });
     }
