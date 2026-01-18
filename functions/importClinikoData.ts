@@ -47,8 +47,9 @@ Deno.serve(async (req) => {
       const results = [];
       const idMap = {};
       for (const type of (data || CLINIKO_DATA.appointment_types)) {
+        const clinikoId = type.cliniko_id || type.id;
         const created = await base44.asServiceRole.entities.AppointmentType.create({
-          cliniko_id: type.cliniko_id,
+          cliniko_id: clinikoId,
           name: type.name,
           duration_in_minutes: type.duration_in_minutes,
           color: type.color,
@@ -56,8 +57,8 @@ Deno.serve(async (req) => {
           created_by: userEmail
         });
         results.push(created);
-        if (type.cliniko_id) {
-          idMap[type.cliniko_id] = created.id;
+        if (clinikoId) {
+          idMap[clinikoId] = created.id;
         }
       }
       return Response.json({ success: true, imported: results.length, type: 'appointment_types', idMap });
