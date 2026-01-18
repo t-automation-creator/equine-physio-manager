@@ -223,7 +223,7 @@ export default function AdminImport() {
               <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-cvs-blue hover:bg-blue-50 transition-colors">
                 <FileJson size={24} className="text-gray-400" />
                 <span className="text-gray-600 font-medium">
-                  Upload physio_app_import.json
+                  Upload import_payload.json
                 </span>
               </div>
             </label>
@@ -233,7 +233,7 @@ export default function AdminImport() {
             <Textarea
               value={importData}
               onChange={(e) => setImportData(e.target.value)}
-              placeholder='Paste the contents of physio_app_import.json here...'
+              placeholder='Paste the contents of import_payload.json here...'
               className="min-h-[200px] font-mono text-sm"
             />
           </div>
