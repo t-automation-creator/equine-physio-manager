@@ -26,6 +26,7 @@ import TreatmentSummary from './pages/TreatmentSummary';
 import YardDetail from './pages/YardDetail';
 import Yards from './pages/Yards';
 import index from './pages/index';
+import StepImport from './pages/StepImport';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "YardDetail": YardDetail,
     "Yards": Yards,
     "index": index,
+    "StepImport": StepImport,
 }
 
 export const pagesConfig = {
