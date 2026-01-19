@@ -210,14 +210,17 @@ export default function NewAppointment() {
                   <SelectItem key={type.id} value={type.id}>
                     <div className="flex items-center gap-2">
                       {type.color && (
-                        <div 
-                          className="w-3 h-3 rounded-full" 
+                        <div
+                          className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: type.color }}
                         />
                       )}
                       <span>{type.name}</span>
                       {type.duration_in_minutes && (
                         <span className="text-gray-400 text-sm">({type.duration_in_minutes} min)</span>
+                      )}
+                      {type.default_price && (
+                        <span className="text-green-600 text-sm font-medium">£{type.default_price.toFixed(2)}</span>
                       )}
                     </div>
                   </SelectItem>

@@ -97,17 +97,29 @@ export default function CreateInvoice() {
     enabled: !!user,
   });
 
+  const { data: appointmentType } = useQuery({
+    queryKey: ['appointmentType', appointment?.appointment_type_id],
+    queryFn: async () => {
+      const types = await base44.entities.AppointmentType.filter({ id: appointment.appointment_type_id });
+      return types[0];
+    },
+    enabled: !!appointment?.appointment_type_id,
+  });
+
   const getHorse = (id) => horses.find(h => h.id === id);
 
   // Auto-generate invoice line items from treatments
   useEffect(() => {
     if (treatments.length > 0 && lineItems.length === 0 && horses.length > 0 && settings) {
+      // Use appointment type price if available, otherwise fall back to settings
+      const price = appointmentType?.default_price || settings.default_treatment_price || 60;
+      const serviceName = appointmentType?.name || 'Physiotherapy Treatment';
+
       const items = treatments.map(t => {
         const horse = getHorse(t.horse_id);
-        const treatmentDesc = t.treatment_types?.length > 0 
-          ? t.treatment_types.join(', ') 
-          : 'Physiotherapy Treatment';
-        const price = settings.default_treatment_price || 60;
+        const treatmentDesc = t.treatment_types?.length > 0
+          ? t.treatment_types.join(', ')
+          : serviceName;
         return {
           description: `${horse?.name || 'Horse'} - ${treatmentDesc}`,
           quantity: 1,
@@ -138,7 +150,7 @@ export default function CreateInvoice() {
         setDueDate(format(addDays(new Date(), settings.invoice_terms_days), 'yyyy-MM-dd'));
       }
     }
-  }, [treatments, horses, settings]);
+  }, [treatments, horses, settings, appointmentType]);
 
   const createMutation = useMutation({
     mutationFn: async (invoiceData) => {
@@ -250,7 +262,8 @@ export default function CreateInvoice() {
         {/* Auto-generated Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
           <p className="text-sm text-blue-800 font-medium">
-            ✓ Invoice automatically generated from {treatments.length} treatment{treatments.length !== 1 ? 's' : ''} at £{settings?.default_treatment_price || 60} per horse
+            ✓ Invoice automatically generated from {treatments.length} treatment{treatments.length !== 1 ? 's' : ''} at £{(appointmentType?.default_price || settings?.default_treatment_price || 60).toFixed(2)} per horse
+            {appointmentType?.name && <span className="text-blue-600"> ({appointmentType.name})</span>}
           </p>
         </div>
 

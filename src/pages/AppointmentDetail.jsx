@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
-import { MapPin, Calendar, Clock, Phone, Mail, Play, FileText, Plus, Check } from 'lucide-react';
+import { MapPin, Calendar, Clock, Phone, Mail, Play, FileText, Plus, Check, PoundSterling } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -71,6 +71,15 @@ export default function AppointmentDetail() {
       return invoices[0];
     },
     enabled: !!appointmentId,
+  });
+
+  const { data: appointmentType } = useQuery({
+    queryKey: ['appointmentType', appointment?.appointment_type_id],
+    queryFn: async () => {
+      const types = await base44.entities.AppointmentType.filter({ id: appointment.appointment_type_id });
+      return types[0];
+    },
+    enabled: !!appointment?.appointment_type_id,
   });
 
   const getHorse = (id) => horses.find(h => h.id === id);
@@ -142,6 +151,21 @@ export default function AppointmentDetail() {
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
+          {appointmentType && (
+            <div className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: appointmentType.color || '#B8D9FF' }}
+              />
+              <span className="text-gray-700 font-medium">{appointmentType.name}</span>
+              {appointmentType.default_price && (
+                <span className="flex items-center gap-0.5 text-green-600 font-medium">
+                  <PoundSterling size={14} />
+                  {appointmentType.default_price.toFixed(2)}
+                </span>
+              )}
+            </div>
+          )}
           {appointment.time && (
             <div className="flex items-center gap-1.5 text-gray-500">
               <Clock size={16} />

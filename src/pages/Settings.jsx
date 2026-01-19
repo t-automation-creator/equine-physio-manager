@@ -6,14 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '../components/ui/PageHeader';
-import { 
-  Save, 
-  Settings as SettingsIcon, 
-  Upload, 
-  Palette, 
-  Building2, 
+import {
+  Save,
+  Settings as SettingsIcon,
+  Upload,
+  Palette,
+  Building2,
   Image,
-  Download
+  Download,
+  Clock,
+  PoundSterling,
+  Plus,
+  Pencil,
+  X,
+  Check
 } from 'lucide-react';
 
 export default function Settings() {
@@ -34,6 +40,8 @@ export default function Settings() {
     color_scheme: 'blue'
   });
   const [uploading, setUploading] = useState(false);
+  const [editingType, setEditingType] = useState(null);
+  const [newType, setNewType] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -43,15 +51,27 @@ export default function Settings() {
   const { data: settings, isLoading } = useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getMyData', { 
-        entity: 'Settings', 
-        query: {} 
+      const response = await base44.functions.invoke('getMyData', {
+        entity: 'Settings',
+        query: {}
       });
       const settingsData = response.data.data;
       if (settingsData.length === 0) {
         return null;
       }
       return settingsData[0];
+    },
+    enabled: !!user,
+  });
+
+  const { data: appointmentTypes = [], isLoading: typesLoading } = useQuery({
+    queryKey: ['appointmentTypes'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getMyData', {
+        entity: 'AppointmentType',
+        query: {}
+      });
+      return response.data.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     },
     enabled: !!user,
   });
@@ -90,8 +110,62 @@ export default function Settings() {
     },
   });
 
+  const createTypeMutation = useMutation({
+    mutationFn: (data) => base44.entities.AppointmentType.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['appointmentTypes']);
+      setNewType(null);
+    },
+  });
+
+  const updateTypeMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.AppointmentType.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['appointmentTypes']);
+      setEditingType(null);
+    },
+  });
+
+  const deleteTypeMutation = useMutation({
+    mutationFn: (id) => base44.entities.AppointmentType.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['appointmentTypes']);
+    },
+  });
+
   const handleSave = () => {
     saveMutation.mutate(formData);
+  };
+
+  const handleCreateType = () => {
+    if (!newType?.name) return;
+    createTypeMutation.mutate({
+      name: newType.name,
+      duration_in_minutes: newType.duration_in_minutes || 60,
+      default_price: newType.default_price || null,
+      color: newType.color || '#B8D9FF',
+      description: newType.description || null,
+    });
+  };
+
+  const handleUpdateType = () => {
+    if (!editingType?.name) return;
+    updateTypeMutation.mutate({
+      id: editingType.id,
+      data: {
+        name: editingType.name,
+        duration_in_minutes: editingType.duration_in_minutes,
+        default_price: editingType.default_price || null,
+        color: editingType.color,
+        description: editingType.description || null,
+      },
+    });
+  };
+
+  const handleDeleteType = (id) => {
+    if (confirm('Are you sure you want to delete this appointment type?')) {
+      deleteTypeMutation.mutate(id);
+    }
   };
 
   const handleLogoUpload = async (e) => {
@@ -190,7 +264,7 @@ export default function Settings() {
             Download a backup of all your data including clients, horses, appointments, treatments, and invoice types.
           </p>
 
-          <Button 
+          <Button
             onClick={handleExport}
             variant="default"
             className="w-full"
@@ -198,6 +272,240 @@ export default function Settings() {
             <Download size={18} />
             Download Backup
           </Button>
+        </div>
+
+        {/* Appointment Types / Service Pricing */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <PoundSterling size={20} className="text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Service Types & Pricing</h3>
+                <p className="text-sm text-gray-500">Manage appointment types and their default prices</p>
+              </div>
+            </div>
+            {!newType && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setNewType({ name: '', duration_in_minutes: 60, default_price: '', color: '#B8D9FF', description: '' })}
+              >
+                <Plus size={16} />
+                Add Type
+              </Button>
+            )}
+          </div>
+
+          {/* New Type Form */}
+          {newType && (
+            <div className="mb-4 p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-medium text-green-800">New Appointment Type</span>
+                <Button variant="ghost" size="icon" onClick={() => setNewType(null)}>
+                  <X size={16} />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <Label className="text-xs">Name *</Label>
+                  <Input
+                    value={newType.name}
+                    onChange={(e) => setNewType({ ...newType, name: e.target.value })}
+                    placeholder="e.g., Equine Physio"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Default Price (£)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={newType.default_price}
+                    onChange={(e) => setNewType({ ...newType, default_price: parseFloat(e.target.value) || '' })}
+                    placeholder="65.00"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Duration (mins)</Label>
+                  <Input
+                    type="number"
+                    min="5"
+                    step="5"
+                    value={newType.duration_in_minutes}
+                    onChange={(e) => setNewType({ ...newType, duration_in_minutes: parseInt(e.target.value) || 60 })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Color</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={newType.color}
+                      onChange={(e) => setNewType({ ...newType, color: e.target.value })}
+                      className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+                    />
+                    <Input
+                      value={newType.color}
+                      onChange={(e) => setNewType({ ...newType, color: e.target.value })}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="mb-3">
+                <Label className="text-xs">Description (optional)</Label>
+                <Input
+                  value={newType.description}
+                  onChange={(e) => setNewType({ ...newType, description: e.target.value })}
+                  placeholder="Brief description of this service"
+                />
+              </div>
+              <Button
+                onClick={handleCreateType}
+                disabled={!newType.name || createTypeMutation.isPending}
+                className="w-full"
+              >
+                <Check size={16} />
+                {createTypeMutation.isPending ? 'Creating...' : 'Create Appointment Type'}
+              </Button>
+            </div>
+          )}
+
+          {/* Existing Types List */}
+          {typesLoading ? (
+            <p className="text-center text-gray-500 py-4">Loading...</p>
+          ) : appointmentTypes.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No appointment types configured</p>
+          ) : (
+            <div className="space-y-3">
+              {appointmentTypes.map((type) => (
+                <div key={type.id}>
+                  {editingType?.id === type.id ? (
+                    /* Edit Mode */
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-blue-800">Editing</span>
+                        <Button variant="ghost" size="icon" onClick={() => setEditingType(null)}>
+                          <X size={16} />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <Label className="text-xs">Name *</Label>
+                          <Input
+                            value={editingType.name}
+                            onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Default Price (£)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={editingType.default_price || ''}
+                            onChange={(e) => setEditingType({ ...editingType, default_price: parseFloat(e.target.value) || null })}
+                            placeholder="65.00"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Duration (mins)</Label>
+                          <Input
+                            type="number"
+                            min="5"
+                            step="5"
+                            value={editingType.duration_in_minutes}
+                            onChange={(e) => setEditingType({ ...editingType, duration_in_minutes: parseInt(e.target.value) || 60 })}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Color</Label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={editingType.color || '#B8D9FF'}
+                              onChange={(e) => setEditingType({ ...editingType, color: e.target.value })}
+                              className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+                            />
+                            <Input
+                              value={editingType.color || '#B8D9FF'}
+                              onChange={(e) => setEditingType({ ...editingType, color: e.target.value })}
+                              className="flex-1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <Label className="text-xs">Description</Label>
+                        <Input
+                          value={editingType.description || ''}
+                          onChange={(e) => setEditingType({ ...editingType, description: e.target.value })}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleUpdateType}
+                          disabled={!editingType.name || updateTypeMutation.isPending}
+                          className="flex-1"
+                        >
+                          <Save size={16} />
+                          {updateTypeMutation.isPending ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDeleteType(type.id)}
+                          disabled={deleteTypeMutation.isPending}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* View Mode */
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: type.color || '#B8D9FF' }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900">{type.name}</p>
+                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} />
+                            {type.duration_in_minutes} min
+                          </span>
+                          {type.default_price ? (
+                            <span className="flex items-center gap-1 text-green-600 font-medium">
+                              <PoundSterling size={12} />
+                              {type.default_price.toFixed(2)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 italic">No price set</span>
+                          )}
+                        </div>
+                        {type.description && (
+                          <p className="text-xs text-gray-400 mt-1 truncate">{type.description}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingType({ ...type })}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-500 mt-4">
+            Set default prices for each service type. These prices will be used when creating invoices.
+          </p>
         </div>
 
         {/* Business Information */}
